@@ -6,10 +6,6 @@ from typing import Tuple, Union, Optional
 from dataclasses import dataclass
 
 
-# ============================================================
-# CONSTANTS
-# ============================================================
-
 class TimeUnits:
     UNIT_NAME = "seconds"
     EPSILON = 1e-9  # epsilon for floating point comparisons
@@ -35,18 +31,8 @@ class SpeedUnits:
         print(f"[SPEED UNIT] {description} (unit: {SpeedUnits.UNIT_NAME})")
 
 
-# ============================================================
-# TIME COMPARISON
-# ============================================================
 
 class TimeComparison:
-    """
-    All time comparisons should use this class to ensure consistency.
-
-    Per semantic definition §Numerical Precision:
-    "Do NOT round intermediate results"
-    "For time comparisons always use epsilon = 1e-9"
-    """
 
     EPS = TimeUnits.EPSILON  # 1e-9 seconds
 
@@ -84,30 +70,7 @@ class TimeComparison:
         return t1 < t2 - eps
 
 
-# ============================================================
-# TRAVEL TIME CALCULATION
-# ============================================================
-
 class TravelTimeCalculator:
-    """
-    Unified travel time calculator.
-
-    Function Signature: travel_time(p1: Location, p2: Location, robot: Robot) -> Time
-
-    DEFINITION:
-      Travel time is the minimum time required for a robot to move from
-      location p1 to location p2, given the robot's maximum speed.
-
-    COMPUTATION:
-      distance = sqrt((p2.x - p1.x)^2 + (p2.y - p1.y)^2)  [meters]
-      speed = max(robot.max_speed, EPSILON)  [m/s]
-      travel_time = distance / speed  [seconds]
-
-    OUTPUT:
-      float: Pure travel time, WITHOUT any setup/service/overhead
-      Units: seconds
-      Precision: IEEE 754 double precision
-    """
 
     EPSILON_SPEED = 1e-9  # m/s, prevent division by zero
 
@@ -129,14 +92,7 @@ class TravelTimeCalculator:
 
     @staticmethod
     def safe_speed(max_speed: float) -> float:
-        """Get a safe speed value (avoids division by zero).
 
-        Args:
-            max_speed: robot maximum speed (m/s)
-
-        Returns:
-            float: max(max_speed, EPSILON_SPEED) in m/s
-        """
         return max(max_speed, TravelTimeCalculator.EPSILON_SPEED)
 
     @staticmethod
@@ -194,37 +150,13 @@ class TravelTimeCalculator:
         )
 
 
-# ============================================================
-# RESOURCE OVERHEAD CALCULATION
-# ============================================================
 
 class ResourceOverheadCalculator:
-    """
-    Resource overhead calculator.
 
-    DEFINITION:
-      Resource overhead is the additional time required when a task uses
-      a shared resource. This is SEPARATE from travel_time.
-
-    USAGE:
-      When a task uses a resource:
-      resource_hold_time = task.duration + resource.traversal_time
-
-    IMPORTANT:
-      overhead is part of the resource lock period,
-      NOT something that happens after the robot leaves.
-    """
 
     @staticmethod
     def compute(resource_traversal_time: float) -> float:
-        """Get resource overhead value.
 
-        Args:
-            resource_traversal_time: traversal_time from resource config (seconds)
-
-        Returns:
-            float: resource overhead in seconds
-        """
         if resource_traversal_time < 0:
             raise ValueError(
                 f"resource_traversal_time must be >= 0, "
@@ -235,37 +167,15 @@ class ResourceOverheadCalculator:
     @staticmethod
     def get_resource_hold_duration(task_duration: float,
                                    resource_overhead: float) -> float:
-        """Compute total duration a task holds a resource.
-
-        Formula:
-            resource_hold_duration = task_duration + resource_overhead
-
-        Example:
-            >>> task_dur = 15  # task executes for 15s
-            >>> resource_oh = 10  # resource overhead 10s
-            >>> total = ResourceOverheadCalculator.get_resource_hold_duration(
-            ...     task_dur, resource_oh)
-            >>> print(f"Resource held for {total}s")
-            Resource held for 25s
-        """
         return task_duration + resource_overhead
 
 
-# ============================================================
-# TIME CONSTRAINT VALIDATION
-# ============================================================
-
 class TimeConstraintValidator:
-    """Time constraint validator."""
 
     @staticmethod
     def check_deadline_compliance(task_end_time: float,
                                   task_deadline: float) -> Tuple[bool, float]:
-        """Check whether a task meets its deadline.
 
-        Returns:
-            Tuple[bool, float]: (complies, violation_amount)
-        """
         complies = TimeComparison.leq(task_end_time, task_deadline)
         violation = max(0.0, task_end_time - task_deadline)
         return complies, violation
@@ -273,26 +183,14 @@ class TimeConstraintValidator:
     @staticmethod
     def check_global_deadline_compliance(makespan: float,
                                          global_deadline: float) -> Tuple[bool, float]:
-        """Check whether the system meets the global deadline.
-
-        Returns:
-            Tuple[bool, float]: (complies, violation_amount)
-        """
+    
         complies = TimeComparison.leq(makespan, global_deadline)
         violation = max(0.0, makespan - global_deadline)
         return complies, violation
 
     @staticmethod
     def check_resource_mutex(resource_allocations: list) -> bool:
-        """Check resource mutual exclusion constraints.
-
-        Args:
-            resource_allocations: list of resource usage entries,
-                each with {"robot": robot_id, "start_time": t_start, "end_time": t_end}
-
-        Returns:
-            bool: True if no overlaps detected
-        """
+    
         if len(resource_allocations) <= 1:
             return True
 
@@ -310,13 +208,9 @@ class TimeConstraintValidator:
         return True
 
 
-# ============================================================
-# TYPED VALUE WRAPPERS
-# ============================================================
-
 @dataclass
 class TimeValue:
-    """Time value with explicit unit declaration."""
+
     value: float  # seconds
     unit: str = "seconds"
 
@@ -334,7 +228,7 @@ class TimeValue:
 
 @dataclass
 class SpatialValue:
-    """Spatial value with explicit unit declaration."""
+
     value: Tuple[float, float]  # (x, y)
     unit: str = "meters"
 
@@ -350,11 +244,6 @@ class SpatialValue:
 
     def __iter__(self):
         return iter(self.value)
-
-
-# ============================================================
-# USAGE EXAMPLES AND TESTS
-# ============================================================
 
 if __name__ == "__main__":
     print("=" * 70)
