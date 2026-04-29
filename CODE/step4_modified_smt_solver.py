@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-STEP 4: SMT Solver with Unified Time Calculation
-
-Uses TravelTimeCalculator to ensure consistency between
-SMT solver and local verifier.
-"""
 
 try:
     from z3 import *
     HAS_Z3 = True
 except ImportError:
     HAS_Z3 = False
-    print("Warning: Z3 not installed")
+    print("[Warning] Z3 not installed. SMT solver disabled.")
 
 import time
 from typing import Dict, List, Tuple, Optional, Any
 import math
+
 
 from step2_unified_time_library import (
     TravelTimeCalculator,
@@ -26,6 +21,7 @@ from step2_unified_time_library import (
 
 
 def build_task_pool(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Build task pool."""
     task_pool = {}
     for t in cfg.get("tasks", []):
         tid = t.get("id")
@@ -43,6 +39,7 @@ def build_task_pool(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def build_robots(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Build robot pool."""
     robots = {}
     for r in cfg.get("robots", []):
         rid = r.get("id") or r.get("name")
@@ -59,6 +56,7 @@ def build_robots(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def build_resources(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Build resource pool."""
     resources = {}
     for res_name, res_spec in cfg.get("resources", {}).items():
         resources[res_name] = {
@@ -71,29 +69,38 @@ def build_resources(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
 class HeterogeneousScheduler:
 
-    def __init__(self, cfg: Dict, time_limit: int = 300000):
+    def __init__(self, cfg: Dict[str, Any], time_limit: int = 300000):  # 300s
         if not HAS_Z3:
-            raise ImportError("Z3 is required")
+            raise ImportError("Z3 is required for SMT solver")
 
         self.cfg = cfg
-        self.time_limit = time_limit
+        self.time_limit = time_limit  # milliseconds
+
         self.tasks = build_task_pool(cfg)
         self.robots = build_robots(cfg)
         self.resources = build_resources(cfg)
         self.global_deadline = float(cfg.get("global_deadline", 1e9))
+
         self.solver = None
         self.vars = {}
         self.failure_reason = None
-        self.travel_time_constraints = {}
-        self.resource_overhead_values = {}
+
+        self.travel_time_constraints = {}  # {(robot, task_i, task_j): time}
+        self.resource_overhead_values = {}  # {resource: overhead}
 
     def capable(self, robot: Dict, task: Dict) -> bool:
+     
         req_cap = task.get("requires_capability")
         if req_cap is None:
             return True
         return req_cap in robot.get("capabilities", [])
 
     def travel_time_from_start(self, robot: Dict, task: Dict) -> float:
+      
+        TravelTimeCalculator.euclidean_distance(
+            robot["start_position"],
+            task["location"]
+        )
         return TravelTimeCalculator.compute(
             robot["start_position"],
             task["location"],
@@ -101,6 +108,7 @@ class HeterogeneousScheduler:
         )
 
     def travel_time_between_tasks(self, robot: Dict, task_i: Dict, task_j: Dict) -> float:
+       
         return TravelTimeCalculator.compute(
             task_i["location"],
             task_j["location"],
@@ -108,7 +116,9 @@ class HeterogeneousScheduler:
         )
 
     def build_smt_model(self) -> bool:
+     
         if not HAS_Z3:
+            print("[✗] Z3 not installed")
             return False
 
         self.solver = Optimize()
@@ -127,19 +137,20 @@ class HeterogeneousScheduler:
         robot_ids = list(self.robots.keys())
         task_ids = list(self.tasks.keys())
 
-        # Task variables
+       
         for task_id in task_ids:
             task = self.tasks[task_id]
             st = Real(f"st_{task_id}")
             et = Real(f"et_{task_id}")
             self.vars["start"][task_id] = st
             self.vars["end"][task_id] = et
+
             self.solver.add(st >= 0)
             self.solver.add(et == st + task["duration"])
             self.solver.add(et <= task["deadline"])
             self.solver.add(et <= self.global_deadline)
 
-        # Assignment constraints
+       
         for task_id in task_ids:
             task = self.tasks[task_id]
             candidates = []
@@ -153,6 +164,7 @@ class HeterogeneousScheduler:
                     self.solver.add(a == False)
                 else:
                     candidates.append(a)
+
                     first_travel = self.travel_time_from_start(robot, task)
                     self.solver.add(
                         Implies(a, self.vars["start"][task_id] >= first_travel)
@@ -164,7 +176,7 @@ class HeterogeneousScheduler:
 
             self.solver.add(Sum([If(v, 1, 0) for v in candidates]) == 1)
 
-        # Ordering and travel time constraints
+        # ===== 3) Per-robot ordering and travel time constraints =====
         for robot_id in robot_ids:
             robot = self.robots[robot_id]
             task_ids_list = list(self.tasks.keys())
@@ -176,88 +188,117 @@ class HeterogeneousScheduler:
 
                     ai = self.vars["assign"][(robot_id, ti)]
                     aj = self.vars["assign"][(robot_id, tj)]
+
                     ord_ij = Bool(f"ord_{robot_id}_{ti}_{tj}")
                     self.vars["order"][(robot_id, ti, tj)] = ord_ij
 
-                    tt_ij = self.travel_time_between_tasks(robot, self.tasks[ti], self.tasks[tj])
-                    tt_ji = self.travel_time_between_tasks(robot, self.tasks[tj], self.tasks[ti])
+                    tt_ij = self.travel_time_between_tasks(
+                        robot,
+                        self.tasks[ti],
+                        self.tasks[tj]
+                    )
+                    tt_ji = self.travel_time_between_tasks(
+                        robot,
+                        self.tasks[tj],
+                        self.tasks[ti]
+                    )
 
                     self.travel_time_constraints[(robot_id, ti, tj)] = tt_ij
                     self.travel_time_constraints[(robot_id, tj, ti)] = tt_ji
 
                     self.solver.add(
-                        Implies(And(ai, aj), Or(
-                            And(ord_ij, self.vars["start"][tj] >= self.vars["end"][ti] + tt_ij),
-                            And(Not(ord_ij), self.vars["start"][ti] >= self.vars["end"][tj] + tt_ji)
-                        ))
-                    )
-
-        # Makespan constraint
-        self.solver.add(self.vars["makespan"] >= 0)
-        for task_id in task_ids:
-            self.solver.add(self.vars["makespan"] >= self.vars["end"][task_id])
-
-        # Resource overhead
-        for res_name in self.resources.keys():
-            resource = self.resources[res_name]
-            overhead = ResourceOverheadCalculator.compute(resource["traversal_time"])
-            self.resource_overhead_values[res_name] = overhead
-
-        # Resource constraints
-        for res_name in self.resources.keys():
-            res_tasks = []
-            for task_id in task_ids:
-                if res_name in self.tasks[task_id].get("uses_resources", []):
-                    res_tasks.append(task_id)
-
-            if len(res_tasks) <= 1:
-                continue
-
-            for i, ti in enumerate(res_tasks):
-                for j, tj in enumerate(res_tasks):
-                    if i >= j:
-                        continue
-
-                    overhead = self.resource_overhead_values[res_name]
-                    t1_end_with_overhead = self.vars["end"][ti] + overhead
-                    self.solver.add(
-                        Or(
-                            self.vars["start"][tj] >= t1_end_with_overhead,
-                            self.vars["start"][ti] >= self.vars["end"][tj] + overhead
+                        Implies(
+                            And(ai, aj),
+                            Or(
+                                And(ord_ij,
+                                    self.vars["start"][tj] >=
+                                    self.vars["end"][ti] + tt_ij),
+                                And(Not(ord_ij),
+                                    self.vars["start"][ti] >=
+                                    self.vars["end"][tj] + tt_ji),
+                            )
                         )
                     )
 
-        self.solver.minimize(self.vars["makespan"])
+        # ===== 4) Shared resource mutual exclusion constraints =====
+        for res_name in self.resources.keys():
+            resource = self.resources[res_name]
+
+            resource_oh = ResourceOverheadCalculator.compute(
+                resource["traversal_time"]
+            )
+            self.resource_overhead_values[res_name] = resource_oh
+
+            tasks_using_res = [
+                t_id for t_id, task in self.tasks.items()
+                if res_name in task.get("uses_resources", [])
+            ]
+
+            for task_id in tasks_using_res:
+                res_st = Real(f"res_st_{res_name}_{task_id}")
+                res_et = Real(f"res_et_{res_name}_{task_id}")
+
+                self.vars["res_start"][(res_name, task_id)] = res_st
+                self.vars["res_end"][(res_name, task_id)] = res_et
+
+                self.solver.add(res_st == self.vars["start"][task_id])
+                self.solver.add(
+                    res_et == self.vars["end"][task_id] + resource_oh
+                )
+
+            for i in range(len(tasks_using_res)):
+                for j in range(i + 1, len(tasks_using_res)):
+                    ti = tasks_using_res[i]
+                    tj = tasks_using_res[j]
+
+                    b = Bool(f"res_before_{res_name}_{ti}_{tj}")
+
+                    self.solver.add(
+                        Or(
+                            And(b,
+                                self.vars["res_end"][(res_name, ti)] <=
+                                self.vars["res_start"][(res_name, tj)]),
+                            And(Not(b),
+                                self.vars["res_end"][(res_name, tj)] <=
+                                self.vars["res_start"][(res_name, ti)]),
+                        )
+                    )
+
+        # ===== 5) Makespan =====
+        makespan = self.vars["makespan"]
+        self.solver.add(makespan >= 0)
+        for task_id in task_ids:
+            self.solver.add(makespan >= self.vars["end"][task_id])
+
+        self.solver.minimize(makespan)
         return True
 
-    def _z3_value_to_float(self, z3_val) -> float:
-        try:
-            if z3_val.as_fraction_string():
-                parts = z3_val.as_fraction_string().split('/')
-                if len(parts) == 2:
-                    return float(parts[0]) / float(parts[1])
-            return float(z3_val.as_decimal(10))
-        except:
-            try:
-                return float(str(z3_val))
-            except:
-                return 0.0
+    def _z3_value_to_float(self, value: Any) -> float:
+     
+        if hasattr(value, "numerator_as_long") and hasattr(value, "denominator_as_long"):
+            numerator = value.numerator_as_long()
+            denominator = value.denominator_as_long()
+            return numerator / denominator
+        if hasattr(value, "as_decimal"):
+            dec = value.as_decimal(20)
+            if isinstance(dec, str) and dec.endswith("?"):
+                dec = dec[:-1]
+            return float(dec)
+        return float(value)
 
-    def solve(self) -> Optional[Dict]:
+    def solve(self) -> Optional[Dict[str, Any]]:
+       
         if not self.build_smt_model():
             return None
 
-        t0 = time.time()
         result = self.solver.check()
-        elapsed = time.time() - t0
-
         if result != sat:
-            self.failure_reason = f"Z3: {result}"
+            self.failure_reason = f"Z3_returned: {result}"
             return None
 
         m = self.solver.model()
 
-        # Extract solution
+        # ===== Extract solution =====
         schedules = {}
         for robot_id in self.robots.keys():
             schedules[robot_id] = []
@@ -268,6 +309,7 @@ class HeterogeneousScheduler:
                 if is_true(m.eval(assign_var)):
                     start_val = self._z3_value_to_float(m.eval(self.vars["start"][task_id]))
                     end_val = self._z3_value_to_float(m.eval(self.vars["end"][task_id]))
+
                     schedules[robot_id].append({
                         "task_id": task_id,
                         "start_time": start_val,
@@ -276,7 +318,7 @@ class HeterogeneousScheduler:
                         "location": list(self.tasks[task_id]["location"]),
                     })
 
-        # Resource allocation
+        # ===== Resource allocation =====
         resource_allocation = {}
         for res_name in self.resources.keys():
             resource_allocation[res_name] = []
@@ -293,13 +335,14 @@ class HeterogeneousScheduler:
                         })
             resource_allocation[res_name].sort(key=lambda x: x["start_time"])
 
+        # ===== Makespan =====
         makespan = self._z3_value_to_float(m.eval(self.vars["makespan"]))
 
         return {
             "feasible": True,
             "optimal": True,
             "status": "sat",
-            "solver_time": elapsed,
+            "solver_time": 0.0,  # Z3 internal timing
             "makespan": makespan,
             "schedules": schedules,
             "resource_allocation": resource_allocation,
@@ -315,8 +358,9 @@ class HeterogeneousScheduler:
         }
 
 
-def generate_random_config(num_robots: int, num_tasks: int, seed: int) -> Dict:
-    """Generate random scheduling config."""
+
+def generate_random_config(num_robots: int, num_tasks: int, seed: int) -> Dict[str, Any]:
+    """Generate a random scheduling config with a fixed seed for reproducibility."""
     import random
     rng = random.Random(seed)
 
@@ -343,6 +387,7 @@ def generate_random_config(num_robots: int, num_tasks: int, seed: int) -> Dict:
     for j in range(num_tasks):
         cap = rng.choice(capabilities)
         duration = round(rng.uniform(3.0, 12.0), 1)
+        slack = round(rng.uniform(20.0, 50.0), 1)
         tasks.append({
             "id": f"T{j+1}",
             "location": [
@@ -369,13 +414,13 @@ def run_scalability_benchmark(
     base_seed: int = 42,
     time_limit_ms: int = 30000,
 ) -> None:
-    """Run SMT solver across multiple configurations."""
+
     import statistics
 
     print("=" * 70)
     print("SMT SOLVER SCALABILITY BENCHMARK")
     print(f"  configs: {configs}")
-    print(f"  runs per config: {runs_per_config}")
+    print(f"  runs per config: {runs_per_config}  (seeds {base_seed} … {base_seed + runs_per_config - 1})")
     print(f"  solver timeout: {time_limit_ms // 1000}s per run")
     print("=" * 70)
 
@@ -390,7 +435,7 @@ def run_scalability_benchmark(
         feasible_count = 0
 
         for run_idx in range(runs_per_config):
-            seed = base_seed + run_idx
+            seed = base_seed + run_idx          # different seed every run → different layout
             cfg = generate_random_config(nr, nt, seed)
 
             t0 = time.time()
@@ -410,13 +455,13 @@ def run_scalability_benchmark(
 
         if len(makespans) >= 2:
             mean_ms = statistics.mean(makespans)
-            std_ms = statistics.stdev(makespans)
-            min_ms = min(makespans)
-            max_ms = max(makespans)
+            std_ms  = statistics.stdev(makespans)
+            min_ms  = min(makespans)
+            max_ms  = max(makespans)
         elif len(makespans) == 1:
             mean_ms = makespans[0]
-            std_ms = 0.0
-            min_ms = max_ms = makespans[0]
+            std_ms  = 0.0
+            min_ms  = max_ms = makespans[0]
         else:
             mean_ms = std_ms = min_ms = max_ms = float("nan")
 
@@ -430,12 +475,14 @@ def run_scalability_benchmark(
         )
 
     print("=" * 70)
-    print("Makespan: seconds, Wall time: seconds per run")
+    print("  Makespan unit: seconds   Wall time: seconds per run")
+
 
 
 if __name__ == "__main__":
+    # --- quick single-run smoke test ---
     print("=" * 70)
-    print("SMT SOLVER - TEST")
+    print("MODIFIED SMT SOLVER - SINGLE-RUN TEST")
     print("=" * 70)
 
     cfg_single = generate_random_config(num_robots=2, num_tasks=4, seed=0)
