@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Greedy Variability Experiment: 4 configs × 10 seeds
-
-This script tests Greedy scheduler variability across different problem sizes
-and random seeds to ensure robust performance analysis.
-"""
 
 import time
 import json
@@ -16,7 +10,7 @@ import sys
 try:
     from step3_modified_greedy import GreedyScheduler
 except ImportError as e:
-    print(f"❌ Import failed: {e}")
+    print(f" Import failed: {e}")
     print("Please ensure step3_modified_greedy.py is in the same directory")
     sys.exit(1)
 
@@ -26,10 +20,10 @@ def generate_random_scenario(config: tuple, seed: int) -> Dict[str, Any]:
     num_robots, num_tasks = config
     random.seed(seed)
 
-    # Global deadline scales with problem size
+
     global_deadline = 200.0 * (num_tasks / 6.0)
 
-    # Robot capabilities
+   
     all_capabilities = ["light", "heavy", "basic"]
 
     robots = []
@@ -75,18 +69,10 @@ def generate_random_scenario(config: tuple, seed: int) -> Dict[str, Any]:
 
 
 def run_greedy_variability_experiment():
-    """Run the variability experiment."""
     print("="*80)
     print("  Greedy Variability Experiment: 4 configs × 10 seeds")
     print("="*80)
-    print("""
-Testing Greedy scheduler across:
-- 4 problem sizes: (2,4), (3,6), (4,8), (5,10) robots/tasks
-- 10 random seeds each: 100-109
-- Total: 40 scenarios
-
-This ensures robust statistical analysis.
-""")
+    print()
 
     configs = [(2,4), (3,6), (4,8), (5,10)]
     seeds = range(100, 110)
@@ -99,7 +85,7 @@ This ensures robust statistical analysis.
     for config in configs:
         num_robots, num_tasks = config
         config_key = f"{num_robots}x{num_tasks}"
-        print(f"\n🔄 Testing config: {config_key} ({num_robots} robots, {num_tasks} tasks)")
+        print(f"\n Testing config: {config_key} ({num_robots} robots, {num_tasks} tasks)")
 
         config_results = []
 
@@ -107,10 +93,8 @@ This ensures robust statistical analysis.
             run_count += 1
             print(f"  [{run_count}/{total_runs}] Seed {seed}...")
 
-            # Generate scenario
             scenario = generate_random_scenario(config, seed)
 
-            # Run Greedy
             t0 = time.time()
             scheduler = GreedyScheduler(scenario, seed=seed)
             schedule = scheduler.solve()
@@ -129,7 +113,6 @@ This ensures robust statistical analysis.
 
         all_results[config_key] = config_results
 
-    # Analyze results
     print(f"\n{'='*80}")
     print("EXPERIMENT RESULTS SUMMARY")
     print(f"{'='*80}\n")
@@ -154,22 +137,22 @@ This ensures robust statistical analysis.
             "max_time_ms": max(times),
         }
 
-        print(f"【{config_key}】")
-        print(f"  可行次数: {summary[config_key]['feasible_count']}/{summary[config_key]['total_runs']} "
+        print(f"[{config_key}]")
+        print(f"  Feasible: {summary[config_key]['feasible_count']}/{summary[config_key]['total_runs']} "
               f"({summary[config_key]['feasible_rate']:.1f}%)")
         if makespans:
             print(f"  Makespan (s):")
-            print(f"    - 平均: {summary[config_key]['avg_makespan']:.2f}")
-            print(f"    - 最小: {summary[config_key]['min_makespan']:.2f}")
-            print(f"    - 最大: {summary[config_key]['max_makespan']:.2f}")
-            print(f"    - 标差: {summary[config_key]['std_makespan']:.2f}")
-        print(f"  求解时间 (ms):")
-        print(f"    - 平均: {summary[config_key]['avg_time_ms']:.2f}")
-        print(f"    - 最小: {summary[config_key]['min_time_ms']:.2f}")
-        print(f"    - 最大: {summary[config_key]['max_time_ms']:.2f}")
+            print(f"    - Mean: {summary[config_key]['avg_makespan']:.2f}")
+            print(f"    - Min: {summary[config_key]['min_makespan']:.2f}")
+            print(f"    - Max: {summary[config_key]['max_makespan']:.2f}")
+            print(f"    - Std: {summary[config_key]['std_makespan']:.2f}")
+        print(f"  Solver time (ms):")
+        print(f"    - Mean: {summary[config_key]['avg_time_ms']:.2f}")
+        print(f"    - Min: {summary[config_key]['min_time_ms']:.2f}")
+        print(f"    - Max: {summary[config_key]['max_time_ms']:.2f}")
         print()
 
-    # Save detailed results
+
     output_file = "greedy_variability_results.json"
     with open(output_file, "w") as f:
         json.dump({
@@ -180,9 +163,9 @@ This ensures robust statistical analysis.
             "summary": summary
         }, f, indent=2)
 
-    print(f"✅ Detailed results saved to: {output_file}")
+    print(f"Detailed results saved to: {output_file}")
     print(f"\n{'='*80}")
-    print("✅ EXPERIMENT COMPLETE!")
+    print("EXPERIMENT COMPLETE!")
     print(f"{'='*80}")
 
     return summary
