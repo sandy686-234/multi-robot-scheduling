@@ -1,0 +1,413 @@
+{
+  "experiment": "greedy_variability_4x10",
+  "configs": [
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      5,
+      10
+    ]
+  ],
+  "seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109
+  ],
+  "detailed_results": {
+    "2x4": [
+      {
+        "config": "2x4",
+        "seed": 100,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.6702880859375e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "2x4",
+        "seed": 101,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.6927719116210938e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "2x4",
+        "seed": 102,
+        "feasible": true,
+        "makespan": 64.79565059336902,
+        "solver_time": 3.314018249511719e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "2x4",
+        "seed": 103,
+        "feasible": true,
+        "makespan": 69.15200958981116,
+        "solver_time": 6.29425048828125e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "2x4",
+        "seed": 104,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.9311904907226562e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "2x4",
+        "seed": 105,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.3828277587890625e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "2x4",
+        "seed": 106,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.6927719116210938e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "2x4",
+        "seed": 107,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.621246337890625e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "2x4",
+        "seed": 108,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.002716064453125e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "2x4",
+        "seed": 109,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.7894973754882812e-05,
+        "failure_reason": "capability_mismatch"
+      }
+    ],
+    "3x6": [
+      {
+        "config": "3x6",
+        "seed": 100,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.288818359375e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 101,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.002716064453125e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 102,
+        "feasible": true,
+        "makespan": 107.71266658912089,
+        "solver_time": 4.291534423828125e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "3x6",
+        "seed": 103,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.8835067749023438e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 104,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.7881393432617188e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 105,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.8358230590820312e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 106,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.6927719116210938e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 107,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 3.409385681152344e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 108,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.7894973754882812e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "3x6",
+        "seed": 109,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 3.409385681152344e-05,
+        "failure_reason": "task_deadline_conflict"
+      }
+    ],
+    "4x8": [
+      {
+        "config": "4x8",
+        "seed": 100,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.3603439331054688e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 101,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.0265579223632812e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 102,
+        "feasible": true,
+        "makespan": 122.57593662758053,
+        "solver_time": 5.1021575927734375e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "4x8",
+        "seed": 103,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.3126602172851562e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 104,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 2.7894973754882812e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 105,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.6927719116210938e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 106,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.811981201171875e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 107,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 1.6927719116210938e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 108,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 3.314018249511719e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "4x8",
+        "seed": 109,
+        "feasible": true,
+        "makespan": 118.08022701948153,
+        "solver_time": 5.1021575927734375e-05,
+        "failure_reason": null
+      }
+    ],
+    "5x10": [
+      {
+        "config": "5x10",
+        "seed": 100,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 3.123283386230469e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "5x10",
+        "seed": 101,
+        "feasible": true,
+        "makespan": 104.999068968621,
+        "solver_time": 7.081031799316406e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "5x10",
+        "seed": 102,
+        "feasible": true,
+        "makespan": 153.14110162777447,
+        "solver_time": 6.508827209472656e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "5x10",
+        "seed": 103,
+        "feasible": false,
+        "makespan": null,
+        "solver_time": 3.814697265625e-05,
+        "failure_reason": "task_deadline_conflict"
+      },
+      {
+        "config": "5x10",
+        "seed": 104,
+        "feasible": true,
+        "makespan": 131.93728909738562,
+        "solver_time": 6.699562072753906e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "5x10",
+        "seed": 105,
+        "feasible": true,
+        "makespan": 153.11030698134275,
+        "solver_time": 6.890296936035156e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "5x10",
+        "seed": 106,
+        "feasible": true,
+        "makespan": 143.73977105389008,
+        "solver_time": 7.104873657226562e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "5x10",
+        "seed": 107,
+        "feasible": true,
+        "makespan": 108.02995188317722,
+        "solver_time": 6.699562072753906e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "5x10",
+        "seed": 108,
+        "feasible": true,
+        "makespan": 137.14587835147256,
+        "solver_time": 6.508827209472656e-05,
+        "failure_reason": null
+      },
+      {
+        "config": "5x10",
+        "seed": 109,
+        "feasible": true,
+        "makespan": 116.76634001611795,
+        "solver_time": 7.224082946777344e-05,
+        "failure_reason": null
+      }
+    ]
+  },
+  "summary": {
+    "2x4": {
+      "total_runs": 10,
+      "feasible_count": 2,
+      "feasible_rate": 20.0,
+      "avg_makespan": 66.97383009159009,
+      "min_makespan": 64.79565059336902,
+      "max_makespan": 69.15200958981116,
+      "std_makespan": 2.17817949822107,
+      "avg_time_ms": 0.025391578674316406,
+      "min_time_ms": 0.013828277587890625,
+      "max_time_ms": 0.0629425048828125
+    },
+    "3x6": {
+      "total_runs": 10,
+      "feasible_count": 1,
+      "feasible_rate": 10.0,
+      "avg_makespan": 107.71266658912089,
+      "min_makespan": 107.71266658912089,
+      "max_makespan": 107.71266658912089,
+      "std_makespan": 0,
+      "avg_time_ms": 0.025391578674316406,
+      "min_time_ms": 0.016927719116210938,
+      "max_time_ms": 0.04291534423828125
+    },
+    "4x8": {
+      "total_runs": 10,
+      "feasible_count": 2,
+      "feasible_rate": 20.0,
+      "avg_makespan": 120.32808182353102,
+      "min_makespan": 118.08022701948153,
+      "max_makespan": 122.57593662758053,
+      "std_makespan": 2.2478548040495028,
+      "avg_time_ms": 0.028204917907714844,
+      "min_time_ms": 0.016927719116210938,
+      "max_time_ms": 0.051021575927734375
+    },
+    "5x10": {
+      "total_runs": 10,
+      "feasible_count": 8,
+      "feasible_rate": 80.0,
+      "avg_makespan": 131.1087134974727,
+      "min_makespan": 104.999068968621,
+      "max_makespan": 153.14110162777447,
+      "std_makespan": 17.97992007315921,
+      "avg_time_ms": 0.06165504455566406,
+      "min_time_ms": 0.031232833862304688,
+      "max_time_ms": 0.07224082946777344
+    }
+  }
+}
