@@ -176,7 +176,6 @@ class HeterogeneousScheduler:
 
             self.solver.add(Sum([If(v, 1, 0) for v in candidates]) == 1)
 
-        # ===== 3) Per-robot ordering and travel time constraints =====
         for robot_id in robot_ids:
             robot = self.robots[robot_id]
             task_ids_list = list(self.tasks.keys())
@@ -220,7 +219,6 @@ class HeterogeneousScheduler:
                         )
                     )
 
-        # ===== 4) Shared resource mutual exclusion constraints =====
         for res_name in self.resources.keys():
             resource = self.resources[res_name]
 
@@ -264,7 +262,6 @@ class HeterogeneousScheduler:
                         )
                     )
 
-        # ===== 5) Makespan =====
         makespan = self.vars["makespan"]
         self.solver.add(makespan >= 0)
         for task_id in task_ids:
@@ -298,7 +295,6 @@ class HeterogeneousScheduler:
 
         m = self.solver.model()
 
-        # ===== Extract solution =====
         schedules = {}
         for robot_id in self.robots.keys():
             schedules[robot_id] = []
@@ -318,7 +314,6 @@ class HeterogeneousScheduler:
                         "location": list(self.tasks[task_id]["location"]),
                     })
 
-        # ===== Resource allocation =====
         resource_allocation = {}
         for res_name in self.resources.keys():
             resource_allocation[res_name] = []
@@ -335,7 +330,6 @@ class HeterogeneousScheduler:
                         })
             resource_allocation[res_name].sort(key=lambda x: x["start_time"])
 
-        # ===== Makespan =====
         makespan = self._z3_value_to_float(m.eval(self.vars["makespan"]))
 
         return {
