@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-STEP 3: Modified Greedy Scheduler
-
-Uses unified time calculation library for consistency.
-"""
 
 import math
 import time
 import random
 from typing import Dict, List, Tuple, Optional, Any
+
 
 from step2_unified_time_library import (
     TravelTimeCalculator,
@@ -19,89 +15,101 @@ from step2_unified_time_library import (
 )
 
 
-def build_task_pool(cfg: Dict) -> Dict:
-    task_pool = {}
+def build_task_pool(cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """Build task pool. All time values in seconds, positions in meters."""
+    task_pool: Dict[str, Dict[str, Any]] = {}
     for t in cfg.get("tasks", []):
         tid = t.get("id")
         if not tid:
             continue
-        
-        duration = float(t.get("duration", 0.0))
-        deadline = float(t.get("deadline", 1e9))
-        
-        if duration < 0 or deadline < 0:
-            raise ValueError(f"Task {tid}: invalid duration or deadline")
-        
+
+        duration = float(t.get("duration", 0.0))  # seconds
+        deadline = float(t.get("deadline", 1e9))  # seconds
+
+        if duration < 0:
+            raise ValueError(f"Task {tid}: duration cannot be negative: {duration}")
+        if deadline < 0:
+            raise ValueError(f"Task {tid}: deadline cannot be negative: {deadline}")
+
         task_pool[tid] = {
             "id": tid,
-            "location": tuple(t.get("location", [0.0, 0.0])),
-            "duration": duration,
-            "deadline": deadline,
+            "location": tuple(t.get("location", [0.0, 0.0])),  # meters
+            "duration": duration,  # seconds
+            "deadline": deadline,  # seconds
             "requires_capability": t.get("requires_capability", None),
             "uses_resources": list(t.get("uses_resources", [])),
         }
-    
+
     return task_pool
 
 
-def build_robots(cfg: Dict) -> Dict:
-    robots = {}
+def build_robots(cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """Build robot pool. max_speed in m/s, start_position in meters."""
+    robots: Dict[str, Dict[str, Any]] = {}
     for r in cfg.get("robots", []):
         rid = r.get("id") or r.get("name")
         if not rid:
             continue
-        
-        max_speed = float(r.get("max_speed", 1.0))
+
+        max_speed = float(r.get("max_speed", 1.0))  # m/s
+
         if max_speed < 0:
-            raise ValueError(f"Robot {rid}: invalid max_speed")
-        
+            raise ValueError(f"Robot {rid}: max_speed cannot be negative: {max_speed}")
+
         robots[rid] = {
             "id": rid,
             "name": r.get("name", rid),
             "capabilities": list(r.get("capabilities", [])),
-            "max_speed": max_speed,
-            "start_position": tuple(r.get("start_position", [0.0, 0.0])),
+            "max_speed": max_speed,  # m/s
+            "start_position": tuple(r.get("start_position", [0.0, 0.0])),  # meters
         }
-    
+
     return robots
 
 
-def build_resources(cfg: Dict) -> Dict:
-    resources = {}
+def build_resources(cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """Build resource pool. traversal_time is resource overhead in seconds."""
+    resources: Dict[str, Dict[str, Any]] = {}
     for res_name, res_spec in cfg.get("resources", {}).items():
-        traversal_time = float(res_spec.get("traversal_time", 0.0))
+        traversal_time = float(res_spec.get("traversal_time", 0.0))  # seconds
+
         if traversal_time < 0:
-            raise ValueError(f"Resource {res_name}: invalid traversal_time")
-        
+            raise ValueError(
+                f"Resource {res_name}: traversal_time cannot be negative: {traversal_time}"
+            )
+
         resources[res_name] = {
             "name": res_name,
-            "traversal_time": traversal_time,
+            "traversal_time": traversal_time,  # seconds (resource overhead, NOT travel time)
             "type": res_spec.get("type", "mutex"),
+            "rect": res_spec.get("rect", None),
         }
-    
+
     return resources
 
 
 class GreedyScheduler:
-    """Greedy scheduler with unified time calculation."""
 
-    def __init__(self, cfg: Dict, seed: Optional[int] = None):
+
+    def __init__(self, cfg: Dict[str, Any], seed: Optional[int] = None):
         self.cfg = cfg
         self.task_pool = build_task_pool(cfg)
         self.robots = build_robots(cfg)
         self.resources = build_resources(cfg)
-        self.global_deadline = float(cfg.get("global_deadline", 1e9))
-        self.failure_reason = None
+        self.global_deadline = float(cfg.get("global_deadline", 1e9))  # seconds
+        self.failure_reason: Optional[str] = None
         if seed is not None:
             random.seed(seed)
 
     def _capable(self, rid: str, tid: str) -> bool:
+      
         req = self.task_pool[tid].get("requires_capability")
         if req is None:
             return True
         return req in self.robots[rid].get("capabilities", [])
 
-    def solve(self) -> Optional[Dict]:
+    def solve(self) -> Optional[Dict[str, Any]]:
+        """Greedy multi-robot scheduling."""
         t0 = time.time()
 
         task_ids = list(self.task_pool.keys())
@@ -111,49 +119,51 @@ class GreedyScheduler:
             self.failure_reason = "empty_instance"
             return None
 
-        # Initialize robot state
-        robot_state = {}
+  
+        robot_state: Dict[str, Dict[str, Any]] = {}
         for rid in robot_ids:
             robot_state[rid] = {
-                "time": 0.0,
-                "pos": tuple(self.robots[rid]["start_position"]),
+                "time": 0.0,  # seconds
+                "pos": tuple(self.robots[rid]["start_position"]),  # meters
                 "tasks": [],
             }
 
-        # Initialize resource state
-        resource_free_at = {r: 0.0 for r in self.resources.keys()}
+        resource_free_at: Dict[str, float] = {
+            r: 0.0 for r in self.resources.keys()
+        }  # seconds
 
-        # Sort tasks by deadline
+   
         task_ids.sort(key=lambda tid: self.task_pool[tid]["deadline"])
 
-        # Main scheduling loop
+      
         for tid in task_ids:
             task = self.task_pool[tid]
-            candidates = []
 
+            candidates = []
             for rid in robot_ids:
                 if not self._capable(rid, tid):
                     continue
 
                 rstate = robot_state[rid]
-                max_speed = self.robots[rid]["max_speed"]
+                max_speed = self.robots[rid]["max_speed"]  # m/s
 
                 travel_time = TravelTimeCalculator.compute(
-                    rstate["pos"],
-                    task["location"],
-                    max_speed
-                )
+                    rstate["pos"],      # meters
+                    task["location"],   # meters
+                    max_speed           # m/s
+                )  # returns seconds
 
-                est = rstate["time"] + travel_time
-                eet = est + task["duration"]
+                est = rstate["time"] + travel_time  # seconds
+                eet = est + task["duration"]  # seconds
 
-                # Check resource constraints
+            
                 for res in task.get("uses_resources", []):
                     if res in resource_free_at:
-                        res_free_time = resource_free_at[res]
+                        res_free_time = resource_free_at[res]  # seconds
                         if est < res_free_time - TimeComparison.EPS:
-                            est = res_free_time
-                    eet = est + task["duration"]
+                            est = res_free_time  # seconds
+
+                    eet = est + task["duration"]  # seconds
 
                 candidates.append((eet, est, rid))
 
@@ -161,13 +171,13 @@ class GreedyScheduler:
                 self.failure_reason = "capability_mismatch"
                 return None
 
-            # Select candidate with minimum end time
             candidates.sort(key=lambda x: x[0])
-            num_cand = min(3, len(candidates))
-            best_end, best_start, best_rid = random.choice(candidates[:num_cand])
+            num_candidates = min(3, len(candidates))
+            selected_candidate = random.choice(candidates[:num_candidates])
+            best_end, best_start, best_rid = selected_candidate
 
-            # Check deadline constraints
-            task_deadline = task["deadline"]
+
+            task_deadline = task["deadline"]  # seconds
             task_complies, _ = TimeConstraintValidator.check_deadline_compliance(
                 best_end, task_deadline
             )
@@ -182,30 +192,29 @@ class GreedyScheduler:
                 self.failure_reason = "global_deadline_conflict"
                 return None
 
-            # Assign task
             robot_state[best_rid]["tasks"].append({
                 "task_id": tid,
-                "start_time": float(best_start),
-                "end_time": float(best_end),
-                "duration": float(task["duration"]),
-                "location": list(task["location"]),
+                "start_time": float(best_start),  # seconds
+                "end_time": float(best_end),       # seconds
+                "duration": float(task["duration"]),  # seconds
+                "location": list(task["location"]),   # meters
             })
-            robot_state[best_rid]["time"] = best_end
-            robot_state[best_rid]["pos"] = tuple(task["location"])
+            robot_state[best_rid]["time"] = best_end  # seconds
+            robot_state[best_rid]["pos"] = tuple(task["location"])  # meters
 
-            # Update resource state
             for res in task.get("uses_resources", []):
                 if res in self.resources:
                     resource_oh = ResourceOverheadCalculator.compute(
                         self.resources[res]["traversal_time"]
                     )
-                    resource_free_at[res] = best_end + resource_oh
+                    resource_free_time = best_end + resource_oh  # seconds
+                    resource_free_at[res] = resource_free_time
 
-        # Build schedule result
-        schedules = {rid: robot_state[rid]["tasks"] for rid in robot_ids}
+        schedules = {
+            rid: robot_state[rid]["tasks"] for rid in robot_ids
+        }
 
-        # Build resource allocation info
-        resource_allocation = {}
+        resource_allocation: Dict[str, List[Dict[str, Any]]] = {}
         for res in self.resources.keys():
             resource_allocation[res] = []
             for rid in robot_ids:
@@ -218,22 +227,20 @@ class GreedyScheduler:
                         resource_allocation[res].append({
                             "robot": rid,
                             "task_id": tid,
-                            "start_time": task_entry["start_time"],
-                            "end_time": task_entry["end_time"],
+                            "start_time": task_entry["start_time"],  # seconds
+                            "end_time": task_entry["end_time"],       # seconds
                             "resource_hold_duration": (
                                 task_entry["end_time"] - task_entry["start_time"] + resource_oh
-                            ),
+                            ),  # seconds
                         })
             resource_allocation[res].sort(key=lambda x: x["start_time"])
 
-        # Compute makespan
-        makespan = 0.0
+        makespan = 0.0  # seconds
         for rid in robot_ids:
             if schedules[rid]:
-                completion = schedules[rid][-1]["end_time"]
+                completion = schedules[rid][-1]["end_time"]  # seconds
                 makespan = max(makespan, completion)
 
-        # Validate schedule
         for res_name, allocations in resource_allocation.items():
             mutex_ok = TimeConstraintValidator.check_resource_mutex(allocations)
             if not mutex_ok:
@@ -244,11 +251,11 @@ class GreedyScheduler:
             "feasible": True,
             "optimal": False,
             "status": "greedy",
-            "solver_time": time.time() - t0,
-            "makespan": makespan,
+            "solver_time": time.time() - t0,  # seconds
+            "makespan": makespan,  # seconds
             "schedules": schedules,
             "resource_allocation": resource_allocation,
-            "global_deadline": self.global_deadline,
+            "global_deadline": self.global_deadline,  # seconds
             "num_robots": len(robot_ids),
             "num_tasks": len(task_ids),
             "time_calculation_method": "TravelTimeCalculator (unified)",
@@ -258,52 +265,61 @@ class GreedyScheduler:
         }
 
 
+
 if __name__ == "__main__":
+    import yaml
+
     print("=" * 70)
-    print("GREEDY SCHEDULER - TEST")
+    print("MODIFIED GREEDY SCHEDULER - TEST")
     print("=" * 70)
 
-    config = {
-        "global_deadline": 150,
-        "robots": [
-            {
-                "id": "A",
-                "name": "Forklift",
-                "capabilities": ["heavy_lift"],
-                "max_speed": 0.5,
-                "start_position": [0.0, 0.0]
-            }
-        ],
-        "tasks": [
-            {
-                "id": "task1",
-                "location": [5.0, 0.0],
-                "duration": 10,
-                "deadline": 60,
-                "requires_capability": "heavy_lift",
-                "uses_resources": []
-            }
-        ],
-        "resources": {}
-    }
+    try:
+        with open("config_warehouse_3x6.yaml", "r") as f:
+            config = yaml.safe_load(f)
+    except FileNotFoundError:
+        print("Config file not found. Creating a minimal config...")
+        config = {
+            "global_deadline": 150,
+            "robots": [
+                {
+                    "id": "A",
+                    "name": "Forklift",
+                    "capabilities": ["heavy_lift"],
+                    "max_speed": 0.5,
+                    "start_position": [0.0, 0.0]
+                }
+            ],
+            "tasks": [
+                {
+                    "id": "task1",
+                    "location": [5.0, 0.0],
+                    "duration": 10,
+                    "deadline": 60,
+                    "requires_capability": "heavy_lift",
+                    "uses_resources": []
+                }
+            ],
+            "resources": {}
+        }
 
+    print("\n[Running greedy scheduler...]")
     scheduler = GreedyScheduler(config)
     result = scheduler.solve()
 
     if result:
-        print(f"\nScheduling succeeded!")
+        print(f"\n✓ Scheduling succeeded!")
         print(f"  Feasible: {result['feasible']}")
         print(f"  Makespan: {result['makespan']:.2f} {result['time_units']}")
         print(f"  Solver time: {result['solver_time']*1000:.2f} ms")
         print(f"  Time calculation: {result['time_calculation_method']}")
-        
-        print(f"\nSchedule details:")
+        print(f"\n  Schedule details:")
         for robot_id, tasks in result["schedules"].items():
-            print(f"  Robot {robot_id}: {len(tasks)} tasks")
+            print(f"    Robot {robot_id}: {len(tasks)} tasks")
             for task in tasks:
-                print(f"    - {task['task_id']}: [{task['start_time']:.2f}, {task['end_time']:.2f}]")
+                print(f"      - {task['task_id']}: "
+                      f"[{task['start_time']:.2f}, {task['end_time']:.2f}]")
     else:
-        print(f"\nScheduling failed!")
+        print(f"\n✗ Scheduling failed!")
         print(f"  Reason: {scheduler.failure_reason}")
 
     print("\n" + "=" * 70)

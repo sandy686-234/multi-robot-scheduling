@@ -118,7 +118,7 @@ class HeterogeneousScheduler:
     def build_smt_model(self) -> bool:
      
         if not HAS_Z3:
-            print("[✗] Z3 not installed")
+            print("[Warning] Z3 not installed")
             return False
 
         self.solver = Optimize()
@@ -414,7 +414,7 @@ def run_scalability_benchmark(
     print("=" * 70)
     print("SMT SOLVER SCALABILITY BENCHMARK")
     print(f"  configs: {configs}")
-    print(f"  runs per config: {runs_per_config}  (seeds {base_seed} … {base_seed + runs_per_config - 1})")
+    print(f"  runs per config: {runs_per_config}  (seeds {base_seed}-{base_seed + runs_per_config - 1})")
     print(f"  solver timeout: {time_limit_ms // 1000}s per run")
     print("=" * 70)
 
@@ -494,12 +494,12 @@ if __name__ == "__main__":
 
     run_scalability_benchmark(
         configs=[
-            (2, 4),
             (3, 6),
-            (4, 8),
-            (5, 10),
+            (6, 12),
+            (7, 14),
+            (8, 16),
         ],
-        runs_per_config=10,
+        runs_per_config=3,
         base_seed=100,
-        time_limit_ms=30000,
+        time_limit_ms=60000,
     )

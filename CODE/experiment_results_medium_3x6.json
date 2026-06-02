@@ -1,0 +1,31 @@
+{
+  "total_runs": 50,
+  "greedy": {
+    "feasible_count": 49,
+    "feasible_rate": 98.0,
+    "avg_makespan": 84.66595702536392,
+    "min_makespan": 58.114771267855645,
+    "max_makespan": 127.19798887601388,
+    "std_makespan": 16.513925458029085,
+    "avg_time_ms": 0.0275421142578125,
+    "min_time_ms": 0.022649765014648438,
+    "max_time_ms": 0.07987022399902344
+  },
+  "smt": {
+    "feasible_count": 50,
+    "feasible_rate": 100.0,
+    "avg_makespan": 50.472788421207575,
+    "min_makespan": 50.472788421207575,
+    "max_makespan": 50.472788421207575,
+    "std_makespan": 0.0,
+    "avg_time_ms": 91.47562980651855,
+    "min_time_ms": 57.37614631652832,
+    "max_time_ms": 120.36919593811035
+  },
+  "comparison": {
+    "smt_better_count": 49,
+    "avg_improvement_percent": 38.14529082840123,
+    "max_improvement_percent": 60.319507511706114,
+    "speedup_ratio": 0.0003010869049611053
+  }
+}

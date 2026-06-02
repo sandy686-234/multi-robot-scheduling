@@ -70,11 +70,11 @@ def generate_random_scenario(config: tuple, seed: int) -> Dict[str, Any]:
 
 def run_greedy_variability_experiment():
     print("="*80)
-    print("  Greedy Variability Experiment: 4 configs × 10 seeds")
+    print("  Greedy variability experiment: 4 configs x 10 seeds")
     print("="*80)
     print()
 
-    configs = [(2,4), (3,6), (4,8), (5,10)]
+    configs = [(3, 6), (6, 12), (7, 14), (8, 16)]
     seeds = range(100, 110)
 
     all_results = {}
@@ -156,7 +156,7 @@ def run_greedy_variability_experiment():
     output_file = "greedy_variability_results.json"
     with open(output_file, "w") as f:
         json.dump({
-            "experiment": "greedy_variability_4x10",
+            "experiment": "greedy_variability_large_scale",
             "configs": configs,
             "seeds": list(seeds),
             "detailed_results": all_results,

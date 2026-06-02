@@ -1,325 +1,255 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import time
+import csv
 import json
 import statistics
-from typing import Dict, List, Any
-import sys
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-try:
-    from step3_modified_greedy import GreedyScheduler
-    from step4_modified_smt_solver import HeterogeneousScheduler as SMTScheduler
-except ImportError as e:
-    print(f" {e}")
-    print()
-    sys.exit(1)
-
-def get_test_config_simple():
-    return {
-        "global_deadline": 150.0,
-        "robots": [
-            {
-                "id": "A",
-                "name": "Robot A",
-                "capabilities": ["basic"],
-                "max_speed": 0.5,
-                "start_position": [0.0, 0.0]
-            }
-        ],
-        "tasks": [
-            {
-                "id": "task1",
-                "location": [5.0, 0.0],
-                "duration": 10.0,
-                "deadline": 60.0,
-                "requires_capability": "basic",
-                "uses_resources": []
-            },
-            {
-                "id": "task2",
-                "location": [10.0, 0.0],
-                "duration": 15.0,
-                "deadline": 100.0,
-                "requires_capability": "basic",
-                "uses_resources": []
-            }
-        ],
-        "resources": {}
-    }
+from step3_modified_greedy import GreedyScheduler
+from step4_modified_smt_solver import (
+    HAS_Z3,
+    HeterogeneousScheduler as SMTScheduler,
+    generate_random_config,
+)
 
 
-def get_test_config_medium():
-    return {
-        "global_deadline": 200.0,
-        "robots": [
-            {
-                "id": "A",
-                "capabilities": ["heavy"],
-                "max_speed": 0.5,
-                "start_position": [0.0, 0.0]
-            },
-            {
-                "id": "B",
-                "capabilities": ["light"],
-                "max_speed": 1.0,
-                "start_position": [0.0, 5.0]
-            },
-            {
-                "id": "C",
-                "capabilities": ["light", "heavy"],
-                "max_speed": 0.7,
-                "start_position": [5.0, 5.0]
-            }
-        ],
-        "tasks": [
-            {
-                "id": "t1",
-                "location": [5.0, 0.0],
-                "duration": 15.0,
-                "deadline": 100.0,
-                "requires_capability": "heavy",
-                "uses_resources": []
-            },
-            {
-                "id": "t2",
-                "location": [10.0, 0.0],
-                "duration": 10.0,
-                "deadline": 80.0,
-                "requires_capability": "light",
-                "uses_resources": []
-            },
-            {
-                "id": "t3",
-                "location": [8.0, -5.0],
-                "duration": 12.0,
-                "deadline": 90.0,
-                "requires_capability": "light",
-                "uses_resources": []
-            },
-            {
-                "id": "t4",
-                "location": [0.0, 10.0],
-                "duration": 20.0,
-                "deadline": 120.0,
-                "requires_capability": "heavy",
-                "uses_resources": []
-            },
-            {
-                "id": "t5",
-                "location": [5.0, 5.0],
-                "duration": 8.0,
-                "deadline": 70.0,
-                "requires_capability": "light",
-                "uses_resources": []
-            },
-            {
-                "id": "t6",
-                "location": [-5.0, 5.0],
-                "duration": 18.0,
-                "deadline": 130.0,
-                "requires_capability": None,
-                "uses_resources": []
-            }
-        ],
-        "resources": {}
-    }
+BASELINE_CONFIG = (3, 6)
+LARGE_SCALE_CONFIGS = [(6, 12), (7, 14), (8, 16)]
 
-def run_greedy_experiment(config: Dict[str, Any], num_runs: int = 50) -> List[Dict[str, Any]]:
-    print(f"\n{'='*70}")
-    print(f"Greedy ({num_runs})")
-    print(f"{'='*70}")
+GREEDY_RUNS_PER_CONFIG = 10
+SMT_RUNS_PER_CONFIG = 3
+BASE_SEED = 100
+SMT_TIMEOUT_MS = 60_000
 
-    results = []
-
-    for i in range(num_runs):
-        if (i + 1) % 10 == 0:
-            print(f"  [{i+1}/{num_runs}] ")
-
-        t0 = time.time()
-        scheduler = GreedyScheduler(config)
-        schedule = scheduler.solve()
-        elapsed = time.time() - t0
-
-        if schedule and schedule.get("feasible"):
-            results.append({
-                "run_id": i,
-                "feasible": True,
-                "makespan": schedule.get("makespan", 0.0),
-                "solver_time": elapsed,
-                "num_robots": schedule.get("num_robots", 0),
-                "num_tasks": schedule.get("num_tasks", 0),
-                "calculation_method": schedule.get("time_calculation_method", "unknown"),
-            })
-        else:
-            results.append({
-                "run_id": i,
-                "feasible": False,
-                "makespan": None,
-                "solver_time": elapsed,
-                "failure_reason": scheduler.failure_reason if scheduler else "unknown",
-            })
-
-    return results
+RESULTS_JSON = "comparison_results_large_scale.json"
+RESULTS_CSV = "comparison_results_large_scale.csv"
 
 
-def run_smt_experiment(config: Dict[str, Any], num_runs: int = 50) -> List[Dict[str, Any]]:
-  
-    print(f"\n{'='*70}")
-    print(f"SMT ({num_runs} )")
-    print(f"{'='*70}")
+def run_greedy(config: Dict[str, Any], seed: int) -> Dict[str, Any]:
+    started = time.time()
+    scheduler = GreedyScheduler(config, seed=seed)
+    schedule = scheduler.solve()
+    elapsed = time.time() - started
 
-    results = []
-
-    for i in range(num_runs):
-        if (i + 1) % 10 == 0:
-            print(f"  [{i+1}/{num_runs}]")
-
-        t0 = time.time()
-        try:
-            scheduler = SMTScheduler(config)
-            schedule = scheduler.solve()
-            elapsed = time.time() - t0
-
-            if schedule and schedule.get("feasible"):
-                results.append({
-                    "run_id": i,
-                    "feasible": True,
-                    "optimal": schedule.get("optimal", False),
-                    "makespan": schedule.get("makespan", 0.0),
-                    "solver_time": elapsed,
-                    "num_robots": schedule.get("num_robots", 0),
-                    "num_tasks": schedule.get("num_tasks", 0),
-                    "calculation_method": schedule.get("time_calculation_method", "unknown"),
-                })
-            else:
-                results.append({
-                    "run_id": i,
-                    "feasible": False,
-                    "optimal": False,
-                    "makespan": None,
-                    "solver_time": elapsed,
-                    "failure_reason": scheduler.failure_reason if scheduler else "unknown",
-                })
-        except Exception as e:
-            results.append({
-                "run_id": i,
-                "feasible": False,
-                "optimal": False,
-                "makespan": None,
-                "solver_time": time.time() - t0,
-                "failure_reason": str(e),
-            })
-
-    return results
-
-
-
-def analyze_results(greedy_results: List[Dict], smt_results: List[Dict]) -> Dict[str, Any]:
-    """Analyze and compare results."""
-
-    greedy_feasible = sum(1 for r in greedy_results if r.get("feasible"))
-    smt_feasible = sum(1 for r in smt_results if r.get("feasible"))
-
-    greedy_makespans = [r["makespan"] for r in greedy_results if r.get("feasible")]
-    smt_makespans = [r["makespan"] for r in smt_results if r.get("feasible")]
-
-    greedy_times = [r["solver_time"] * 1000 for r in greedy_results]  # convert to ms
-    smt_times = [r["solver_time"] * 1000 for r in smt_results]
-
-    analysis = {
-        "total_runs": len(greedy_results),
-
-        "greedy": {
-            "feasible_count": greedy_feasible,
-            "feasible_rate": greedy_feasible / len(greedy_results) * 100,
-            "avg_makespan": statistics.mean(greedy_makespans) if greedy_makespans else None,
-            "min_makespan": min(greedy_makespans) if greedy_makespans else None,
-            "max_makespan": max(greedy_makespans) if greedy_makespans else None,
-            "std_makespan": statistics.stdev(greedy_makespans) if len(greedy_makespans) > 1 else 0,
-            "avg_time_ms": statistics.mean(greedy_times),
-            "min_time_ms": min(greedy_times),
-            "max_time_ms": max(greedy_times),
-        },
-
-        "smt": {
-            "feasible_count": smt_feasible,
-            "feasible_rate": smt_feasible / len(smt_results) * 100,
-            "avg_makespan": statistics.mean(smt_makespans) if smt_makespans else None,
-            "min_makespan": min(smt_makespans) if smt_makespans else None,
-            "max_makespan": max(smt_makespans) if smt_makespans else None,
-            "std_makespan": statistics.stdev(smt_makespans) if len(smt_makespans) > 1 else 0,
-            "avg_time_ms": statistics.mean(smt_times),
-            "min_time_ms": min(smt_times),
-            "max_time_ms": max(smt_times),
-        },
-    }
-
-    if greedy_makespans and smt_makespans:
-        improvements = [
-            (g - s) / g * 100
-            for g, s in zip(greedy_makespans, smt_makespans)
-        ]
-        analysis["comparison"] = {
-            "smt_better_count": sum(1 for imp in improvements if imp > 0),
-            "avg_improvement_percent": statistics.mean(improvements),
-            "max_improvement_percent": max(improvements),
-            "speedup_ratio": statistics.mean(greedy_times) / statistics.mean(smt_times) if smt_times else 0,
+    if schedule and schedule.get("feasible"):
+        return {
+            "solver": "greedy",
+            "seed": seed,
+            "feasible": True,
+            "status": schedule.get("status", "greedy"),
+            "makespan": schedule.get("makespan"),
+            "solver_time_sec": elapsed,
+            "failure_reason": None,
         }
 
-    return analysis
+    return {
+        "solver": "greedy",
+        "seed": seed,
+        "feasible": False,
+        "status": "failed",
+        "makespan": None,
+        "solver_time_sec": elapsed,
+        "failure_reason": scheduler.failure_reason or "unknown",
+    }
 
 
-def print_results(analysis: Dict[str, Any]):
-    """Print analysis results."""
+def run_smt(config: Dict[str, Any], seed: int) -> Dict[str, Any]:
+    if not HAS_Z3:
+        return {
+            "solver": "smt",
+            "seed": seed,
+            "feasible": False,
+            "status": "skipped",
+            "makespan": None,
+            "solver_time_sec": 0.0,
+            "failure_reason": "z3_not_installed",
+        }
 
-    print(f"\n{'='*70}")
-    print("实验结果摘要")
-    print(f"{'='*70}\n")
+    started = time.time()
+    scheduler: Optional[SMTScheduler] = None
+    try:
+        scheduler = SMTScheduler(config, time_limit=SMT_TIMEOUT_MS)
+        schedule = scheduler.solve()
+    except Exception as exc:
+        elapsed = time.time() - started
+        return {
+            "solver": "smt",
+            "seed": seed,
+            "feasible": False,
+            "status": "error",
+            "makespan": None,
+            "solver_time_sec": elapsed,
+            "failure_reason": str(exc),
+        }
 
-    print("[Greedy Scheduler]")
-    print(f"  Feasible runs: {analysis['greedy']['feasible_count']}/{analysis['total_runs']} "
-          f"({analysis['greedy']['feasible_rate']:.1f}%)")
-    print(f"  Makespan (feasible):")
-    if analysis['greedy']['avg_makespan']:
-        print(f"    - Mean: {analysis['greedy']['avg_makespan']:.2f} s")
-        print(f"    - Min: {analysis['greedy']['min_makespan']:.2f} s")
-        print(f"    - Max: {analysis['greedy']['max_makespan']:.2f} s")
-        print(f"    - Std: {analysis['greedy']['std_makespan']:.2f} s")
-    print(f"  Solver time:")
-    print(f"    - Mean: {analysis['greedy']['avg_time_ms']:.2f} ms")
-    print(f"    - Min: {analysis['greedy']['min_time_ms']:.2f} ms")
-    print(f"    - Max: {analysis['greedy']['max_time_ms']:.2f} ms")
+    elapsed = time.time() - started
+    if schedule and schedule.get("feasible"):
+        return {
+            "solver": "smt",
+            "seed": seed,
+            "feasible": True,
+            "status": schedule.get("status", "sat"),
+            "makespan": schedule.get("makespan"),
+            "solver_time_sec": elapsed,
+            "failure_reason": None,
+        }
 
-    print(f"\n[SMT Solver]")
-    print(f"  Feasible runs: {analysis['smt']['feasible_count']}/{analysis['total_runs']} "
-          f"({analysis['smt']['feasible_rate']:.1f}%)")
-    print(f"  Makespan (feasible):")
-    if analysis['smt']['avg_makespan']:
-        print(f"    - Mean: {analysis['smt']['avg_makespan']:.2f} s")
-        print(f"    - Min: {analysis['smt']['min_makespan']:.2f} s")
-        print(f"    - Max: {analysis['smt']['max_makespan']:.2f} s")
-        print(f"    - Std: {analysis['smt']['std_makespan']:.2f} s")
-    print(f"  Solver time:")
-    print(f"    - Mean: {analysis['smt']['avg_time_ms']:.2f} ms")
-    print(f"    - Min: {analysis['smt']['min_time_ms']:.2f} ms")
-    print(f"    - Max: {analysis['smt']['max_time_ms']:.2f} ms")
-
-    if "comparison" in analysis:
-        print(f"\n[Comparison Results]")
-        print(f"  SMT better: {analysis['comparison']['smt_better_count']}/{analysis['total_runs']}")
-        print(f"  Mean improvement: {analysis['comparison']['avg_improvement_percent']:.2f}%")
-        print(f"  Max improvement: {analysis['comparison']['max_improvement_percent']:.2f}%")
-        speedup = analysis['comparison']['speedup_ratio']
-        if speedup > 1:
-            print(f"  Greedy speed: {speedup:.1f}x over SMT")
-        else:
-            print(f"  SMT speed: {1/speedup:.1f}x over Greedy")
+    reason = scheduler.failure_reason if scheduler else "unknown"
+    status = "timeout" if reason and "unknown" in reason.lower() else "failed"
+    return {
+        "solver": "smt",
+        "seed": seed,
+        "feasible": False,
+        "status": status,
+        "makespan": None,
+        "solver_time_sec": elapsed,
+        "failure_reason": reason or "unknown",
+    }
 
 
-def save_results_to_file(analysis: Dict[str, Any], filename: str = "experiment_results.json"):
-    """Save results to file."""
-    with open(filename, "w") as f:
-        json.dump(analysis, f, indent=2)
-    print(f"\nResults saved to: {filename}")
+def summarize(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    feasible = [item for item in results if item["feasible"]]
+    makespans = [item["makespan"] for item in feasible if item["makespan"] is not None]
+    times = [item["solver_time_sec"] for item in results]
 
+    return {
+        "runs": len(results),
+        "feasible_runs": len(feasible),
+        "feasible_rate": len(feasible) / len(results) if results else 0.0,
+        "timeout_runs": sum(1 for item in results if item["status"] == "timeout"),
+        "avg_makespan": statistics.mean(makespans) if makespans else None,
+        "min_makespan": min(makespans) if makespans else None,
+        "max_makespan": max(makespans) if makespans else None,
+        "std_makespan": statistics.stdev(makespans) if len(makespans) > 1 else 0.0,
+        "avg_time_sec": statistics.mean(times) if times else 0.0,
+        "min_time_sec": min(times) if times else 0.0,
+        "max_time_sec": max(times) if times else 0.0,
+    }
+
+
+def run_config(num_robots: int, num_tasks: int) -> Dict[str, Any]:
+    label = f"{num_robots}r{num_tasks}t"
+    print(f"\n[{label}]")
+
+    greedy_results = []
+    for offset in range(GREEDY_RUNS_PER_CONFIG):
+        seed = BASE_SEED + offset
+        config = generate_random_config(num_robots, num_tasks, seed)
+        greedy_results.append(run_greedy(config, seed))
+    print(f"  Greedy runs: {len(greedy_results)}")
+
+    smt_results = []
+    for offset in range(SMT_RUNS_PER_CONFIG):
+        seed = BASE_SEED + offset
+        config = generate_random_config(num_robots, num_tasks, seed)
+        smt_results.append(run_smt(config, seed))
+    print(f"  SMT runs:    {len(smt_results)}")
+
+    summary = {
+        "greedy": summarize(greedy_results),
+        "smt": summarize(smt_results),
+    }
+    print_summary(summary)
+
+    return {
+        "label": label,
+        "num_robots": num_robots,
+        "num_tasks": num_tasks,
+        "runs": {
+            "greedy": greedy_results,
+            "smt": smt_results,
+        },
+        "summary": summary,
+    }
+
+
+def print_summary(summary: Dict[str, Dict[str, Any]]) -> None:
+    for solver_name in ("greedy", "smt"):
+        item = summary[solver_name]
+        feasible = f"{item['feasible_runs']}/{item['runs']}"
+        rate = item["feasible_rate"] * 100
+        avg_makespan = item["avg_makespan"]
+        makespan_text = f"{avg_makespan:.2f}s" if avg_makespan is not None else "n/a"
+        print(
+            f"  {solver_name.upper():6} feasible={feasible:<5} "
+            f"rate={rate:5.1f}% avg_makespan={makespan_text:<10} "
+            f"avg_time={item['avg_time_sec']:.3f}s timeout={item['timeout_runs']}"
+        )
+
+
+def write_json(report: Dict[str, Any], output_path: Path) -> None:
+    output_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+
+def write_csv(report: Dict[str, Any], output_path: Path) -> None:
+    rows = []
+    for config_result in report["configs"]:
+        for solver_name, solver_runs in config_result["runs"].items():
+            for run in solver_runs:
+                rows.append({
+                    "config": config_result["label"],
+                    "num_robots": config_result["num_robots"],
+                    "num_tasks": config_result["num_tasks"],
+                    "solver": solver_name,
+                    "seed": run["seed"],
+                    "feasible": run["feasible"],
+                    "status": run["status"],
+                    "makespan": run["makespan"],
+                    "solver_time_sec": run["solver_time_sec"],
+                    "failure_reason": run["failure_reason"],
+                })
+
+    fieldnames = [
+        "config",
+        "num_robots",
+        "num_tasks",
+        "solver",
+        "seed",
+        "feasible",
+        "status",
+        "makespan",
+        "solver_time_sec",
+        "failure_reason",
+    ]
+    with output_path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def main() -> None:
+    print("=" * 72)
+    print("Greedy vs SMT scheduling experiment")
+    print("=" * 72)
+    print(f"Greedy runs per config: {GREEDY_RUNS_PER_CONFIG}")
+    print(f"SMT runs per config:    {SMT_RUNS_PER_CONFIG}")
+    print(f"SMT timeout:            {SMT_TIMEOUT_MS / 1000:.0f}s")
+
+    configs = [BASELINE_CONFIG] + LARGE_SCALE_CONFIGS
+    results = [run_config(num_robots, num_tasks) for num_robots, num_tasks in configs]
+
+    report = {
+        "experiment": "greedy_vs_smt_large_scale",
+        "configs": results,
+        "settings": {
+            "baseline_config": BASELINE_CONFIG,
+            "large_scale_configs": LARGE_SCALE_CONFIGS,
+            "greedy_runs_per_config": GREEDY_RUNS_PER_CONFIG,
+            "smt_runs_per_config": SMT_RUNS_PER_CONFIG,
+            "base_seed": BASE_SEED,
+            "smt_timeout_ms": SMT_TIMEOUT_MS,
+        },
+    }
+
+    write_json(report, Path(RESULTS_JSON))
+    write_csv(report, Path(RESULTS_CSV))
+    print("\nSaved:")
+    print(f"  {RESULTS_JSON}")
+    print(f"  {RESULTS_CSV}")
+
+
+if __name__ == "__main__":
+    main()
