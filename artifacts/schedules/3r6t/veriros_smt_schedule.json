@@ -1,0 +1,125 @@
+{
+  "metadata": {
+    "solver": "VeriROS-SMT",
+    "config_label": "3r6t",
+    "seed": 100,
+    "feasible": true,
+    "status": "sat",
+    "makespan": 83.59103917561657,
+    "solver_time_sec": 0.05530405044555664
+  },
+  "schedules": {
+    "robot_1": [
+      {
+        "task_id": "task_2",
+        "start_time": 39.02650337266623,
+        "end_time": 49.45650337266623,
+        "duration": 10.43,
+        "location": [
+          29.22,
+          13.05
+        ]
+      },
+      {
+        "task_id": "task_6",
+        "start_time": 71.64103917561657,
+        "end_time": 83.59103917561657,
+        "duration": 11.95,
+        "location": [
+          18.87,
+          28.01
+        ]
+      }
+    ],
+    "robot_2": [
+      {
+        "task_id": "task_1",
+        "start_time": 20.453363684532917,
+        "end_time": 29.753363684532918,
+        "duration": 9.3,
+        "location": [
+          16.23,
+          5.44
+        ]
+      },
+      {
+        "task_id": "task_3",
+        "start_time": 39.577790011207526,
+        "end_time": 45.617790011207525,
+        "duration": 6.04,
+        "location": [
+          24.49,
+          9.57
+        ]
+      },
+      {
+        "task_id": "task_5",
+        "start_time": 51.110490628611586,
+        "end_time": 60.480490628611584,
+        "duration": 9.37,
+        "location": [
+          29.65,
+          9.75
+        ]
+      }
+    ],
+    "robot_3": [
+      {
+        "task_id": "task_4",
+        "start_time": 43.86412443924306,
+        "end_time": 53.24412443924305,
+        "duration": 9.38,
+        "location": [
+          9.16,
+          13.35
+        ]
+      }
+    ]
+  },
+  "resource_allocation": {
+    "corridor_A": [
+      {
+        "robot": "robot_2",
+        "task_id": "task_1",
+        "start_time": 20.453363684532917,
+        "end_time": 31.753363684532918
+      },
+      {
+        "robot": "robot_2",
+        "task_id": "task_3",
+        "start_time": 39.577790011207526,
+        "end_time": 47.617790011207525
+      },
+      {
+        "robot": "robot_2",
+        "task_id": "task_5",
+        "start_time": 51.110490628611586,
+        "end_time": 62.480490628611584
+      }
+    ],
+    "loading_zone": [
+      {
+        "robot": "robot_1",
+        "task_id": "task_2",
+        "start_time": 39.02650337266623,
+        "end_time": 52.45650337266623
+      },
+      {
+        "robot": "robot_1",
+        "task_id": "task_6",
+        "start_time": 71.64103917561657,
+        "end_time": 86.59103917561657
+      }
+    ],
+    "charging_station": [
+      {
+        "robot": "robot_3",
+        "task_id": "task_4",
+        "start_time": 43.86412443924306,
+        "end_time": 55.74412443924305
+      }
+    ]
+  },
+  "global_deadline": 222.0,
+  "time_units": "seconds"
+}

@@ -1,0 +1,5 @@
+timestamp,robot_id,task_id,event,x,y,phi_mutex,phi_deadline,stl_rho
+45.962381,robot_5,task_2,start,12.770,32.360,true,true,386.167619
+55.832381,robot_5,task_2,finish,12.770,32.360,true,true,386.167619
+84.767302,robot_5,task_6,start,31.930,42.550,true,true,347.352698
+94.647302,robot_5,task_6,finish,31.930,42.550,true,true,347.352698

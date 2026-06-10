@@ -1,0 +1,7 @@
+solver: Greedy
+config: 8r16t
+seed: 100
+status: greedy
+feasible: True
+makespan_sec: 156.150
+solver_time_sec: 0.000
