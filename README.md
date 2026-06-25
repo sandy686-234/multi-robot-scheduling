@@ -1,44 +1,77 @@
-# SMT-Based Multi-Robot Scheduling
+# Multi-Robot Scheduling and VeriROS Artifacts
 
-Z3 SMT solver for heterogeneous multi-robot task scheduling with temporal, 
-capability, and resource constraints.
+This repository contains the code and artifacts for SMT-based heterogeneous
+multi-robot scheduling and the VeriROS verified-execution tool.
+
+## Repository Layout
+
+```text
+multi-robot-scheduling/
+├── synasc2026/
+│   ├── scheduler.py
+│   ├── validator.py
+│   ├── diagnosis.py
+│   ├── experiments/
+│   └── README.md
+├── veriros/
+│   ├── ros2_nodes/
+│   ├── schedule_follower/
+│   ├── resource_manager/
+│   ├── safety_fence/
+│   ├── stl_monitor/
+│   ├── audit/
+│   └── README.md
+├── artifacts/
+│   ├── schedules/
+│   ├── traces/
+│   ├── logs/
+│   └── figures/
+└── README.md
+```
 
 ## Quick Start
 
 ```bash
-pip install z3-solver
-python step4_modified_smt_solver.py
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+python -m unittest discover -s tests -v
+python -m synasc2026.experiments.run_veriros_paper_experiment --quick
 ```
 
-## Features
+Run the full paper-aligned experiment:
 
-✅ Task assignment to capable robots  
-✅ Temporal constraint verification  
-✅ Resource mutex handling  
-✅ Makespan optimization  
-
-## Usage
-
-```python
-from step4_modified_smt_solver import HeterogeneousScheduler
-
-config = {
-    "global_deadline": 100.0,
-    "robots": [...],
-    "tasks": [...],
-    "resources": {}
-}
-
-scheduler = HeterogeneousScheduler(config)
-result = scheduler.solve()
-
-if result:
-    print(f"Makespan: {result['makespan']:.2f}s")
+```bash
+python -m synasc2026.experiments.run_veriros_paper_experiment
 ```
 
-## Part of VeriROS
+The full experiment evaluates 3r6t, 6r12t, 7r14t, and 8r16t warehouse-style
+instances. The generated summaries are written to
+`synasc2026/experiments/results/`.
 
-Formal verification component for autonomous robot scheduling.  
-📄 *FormaliSE 2026*
+## Main Results
 
-**Contact:** huan.zhang@mumail.ie
+The paper-aligned experiment uses the same scenario generator and seed policy
+for Greedy and VeriROS-SMT runs.
+
+| Config | Greedy Avg Makespan | VeriROS-SMT Avg Makespan | SMT Time |
+|---|---:|---:|---:|
+| 3r6t | 99.19 s | 72.14 s | 0.0633 s |
+| 6r12t | 135.94 s | 96.34 s | 1.3692 s |
+| 7r14t | 165.60 s | 103.22 s | 4.0245 s |
+| 8r16t | 177.84 s | 109.81 s | 8.7938 s |
+
+## Artifact Evidence
+
+Representative generated evidence is available under `artifacts/`:
+
+- `artifacts/schedules/`: representative `schedule.json` files.
+- `artifacts/traces/`: per-robot traces and mutex traces.
+- `artifacts/logs/`: Z3 result summaries and violation logs.
+- `artifacts/figures/`: paper figures and architecture diagrams.
+
+## License
+
+This repository is a research artifact. Add the final license file before public
+artifact review if a specific license is required by the venue.
+
