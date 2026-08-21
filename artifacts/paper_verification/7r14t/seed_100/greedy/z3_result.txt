@@ -1,0 +1,7 @@
+solver: Greedy
+config: 7r14t
+seed: 100
+status: greedy
+feasible: True
+makespan_sec: 187.302
+solver_time_sec: 0.000

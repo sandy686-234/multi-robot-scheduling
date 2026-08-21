@@ -1,0 +1,7 @@
+solver: Greedy
+config: 3r6t
+seed: 100
+status: greedy
+feasible: True
+makespan_sec: 83.591
+solver_time_sec: 0.000

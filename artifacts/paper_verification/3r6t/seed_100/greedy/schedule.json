@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "solver": "Greedy",
+    "config_label": "3r6t",
+    "seed": 100,
+    "feasible": true,
+    "status": "greedy",
+    "makespan": 83.59103917561657,
+    "solver_time_sec": 6.198883056640625e-05
+  },
+  "schedules": {
+    "robot_1": [
+      {
+        "task_id": "task_2",
+        "start_time": 39.02650337266623,
+        "end_time": 49.456503372666226,
+        "duration": 10.43,
+        "location": [
+          29.22,
+          13.05
+        ]
+      },
+      {
+        "task_id": "task_6",
+        "start_time": 71.64103917561657,
+        "end_time": 83.59103917561657,
+        "duration": 11.95,
+        "location": [
+          18.87,
+          28.01
+        ]
+      }
+    ],
+    "robot_2": [
+      {
+        "task_id": "task_1",
+        "start_time": 20.453363684532917,
+        "end_time": 29.753363684532918,
+        "duration": 9.3,
+        "location": [
+          16.23,
+          5.44
+        ]
+      },
+      {
+        "task_id": "task_3",
+        "start_time": 39.577790011207526,
+        "end_time": 45.617790011207525,
+        "duration": 6.04,
+        "location": [
+          24.49,
+          9.57
+        ]
+      }
+    ],
+    "robot_3": [
+      {
+        "task_id": "task_4",
+        "start_time": 30.793248899357426,
+        "end_time": 40.173248899357425,
+        "duration": 9.38,
+        "location": [
+          9.16,
+          13.35
+        ]
+      },
+      {
+        "task_id": "task_5",
+        "start_time": 67.91171316831074,
+        "end_time": 77.28171316831074,
+        "duration": 9.37,
+        "location": [
+          29.65,
+          9.75
+        ]
+      }
+    ]
+  },
+  "resource_allocation": {
+    "corridor_A": [
+      {
+        "robot": "robot_2",
+        "task_id": "task_1",
+        "start_time": 20.453363684532917,
+        "end_time": 31.753363684532918,
+        "resource_hold_duration": 11.3
+      },
+      {
+        "robot": "robot_2",
+        "task_id": "task_3",
+        "start_time": 39.577790011207526,
+        "end_time": 47.617790011207525,
+        "resource_hold_duration": 8.04
+      },
+      {
+        "robot": "robot_3",
+        "task_id": "task_5",
+        "start_time": 67.91171316831074,
+        "end_time": 79.28171316831074,
+        "resource_hold_duration": 11.370000000000005
+      }
+    ],
+    "loading_zone": [
+      {
+        "robot": "robot_1",
+        "task_id": "task_2",
+        "start_time": 39.02650337266623,
+        "end_time": 52.456503372666226,
+        "resource_hold_duration": 13.43
+      },
+      {
+        "robot": "robot_1",
+        "task_id": "task_6",
+        "start_time": 71.64103917561657,
+        "end_time": 86.59103917561657,
+        "resource_hold_duration": 14.950000000000003
+      }
+    ],
+    "charging_station": [
+      {
+        "robot": "robot_3",
+        "task_id": "task_4",
+        "start_time": 30.793248899357426,
+        "end_time": 42.673248899357425,
+        "resource_hold_duration": 11.879999999999999
+      }
+    ]
+  },
+  "global_deadline": 222.0,
+  "time_units": "seconds"
+}
