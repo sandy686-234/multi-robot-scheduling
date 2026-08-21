@@ -20,6 +20,7 @@ class PaperArtifactTests(unittest.TestCase):
         self.assertEqual(6, len(cfg["tasks"]))
         self.assertGreaterEqual(len(cfg["resources"]), 2)
         self.assertTrue(any(t["uses_resources"] for t in cfg["tasks"]))
+        self.assertEqual([["task_1", "task_3"]], cfg["precedence"])
 
         robot_capabilities = {
             capability

@@ -48,6 +48,7 @@ def tiny_config():
                 "traversal_time": 2.0,
             }
         },
+        "precedence": [["task_1", "task_2"]],
     }
 
 
@@ -119,6 +120,19 @@ class VerifyExperimentTests(unittest.TestCase):
         violations = validate_schedule(tiny_config(), schedule)
 
         self.assertTrue(any("resource_mutex" in item for item in violations))
+
+    def test_precedence_violation_is_reported(self):
+        from synasc2026.experiments.verify_experiment import validate_schedule
+
+        schedule = valid_schedule()
+        schedule["schedules"]["robot_1"][1]["start_time"] = 4.0
+        schedule["schedules"]["robot_1"][1]["end_time"] = 9.0
+        schedule["resource_allocation"]["corridor_A"][1]["start_time"] = 9.0
+        schedule["resource_allocation"]["corridor_A"][1]["end_time"] = 16.0
+
+        violations = validate_schedule(tiny_config(), schedule)
+
+        self.assertTrue(any("precedence" in item for item in violations))
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@
     "feasible": true,
     "status": "greedy",
     "makespan": 83.59103917561657,
-    "solver_time_sec": 6.198883056640625e-05
+    "solver_time_sec": 6.818771362304688e-05
   },
   "schedules": {
     "robot_1": [
@@ -126,6 +126,12 @@
       }
     ]
   },
+  "precedence": [
+    [
+      "task_1",
+      "task_3"
+    ]
+  ],
   "global_deadline": 222.0,
   "time_units": "seconds"
 }

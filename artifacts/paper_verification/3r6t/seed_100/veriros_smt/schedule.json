@@ -6,7 +6,7 @@
     "feasible": true,
     "status": "sat",
     "makespan": 83.59103917561657,
-    "solver_time_sec": 0.03761792182922363
+    "solver_time_sec": 0.035604000091552734
   },
   "schedules": {
     "robot_1": [
@@ -33,19 +33,9 @@
     ],
     "robot_2": [
       {
-        "task_id": "task_1",
-        "start_time": 61.4673868961572,
-        "end_time": 70.7673868961572,
-        "duration": 9.3,
-        "location": [
-          16.23,
-          5.44
-        ]
-      },
-      {
         "task_id": "task_3",
-        "start_time": 25.569874289259186,
-        "end_time": 31.60987428925919,
+        "start_time": 69.08733042787107,
+        "end_time": 75.12733042787106,
         "duration": 6.04,
         "location": [
           24.49,
@@ -54,8 +44,8 @@
       },
       {
         "task_id": "task_5",
-        "start_time": 37.10257490666325,
-        "end_time": 46.47257490666325,
+        "start_time": 26.40076069603392,
+        "end_time": 35.77076069603392,
         "duration": 9.37,
         "location": [
           29.65,
@@ -64,6 +54,16 @@
       }
     ],
     "robot_3": [
+      {
+        "task_id": "task_1",
+        "start_time": 50.76557268552787,
+        "end_time": 60.065572685527876,
+        "duration": 9.3,
+        "location": [
+          16.23,
+          5.44
+        ]
+      },
       {
         "task_id": "task_4",
         "start_time": 74.21103917561658,
@@ -80,21 +80,21 @@
     "corridor_A": [
       {
         "robot": "robot_2",
-        "task_id": "task_3",
-        "start_time": 25.569874289259186,
-        "end_time": 33.60987428925919
-      },
-      {
-        "robot": "robot_2",
         "task_id": "task_5",
-        "start_time": 37.10257490666325,
-        "end_time": 48.47257490666325
+        "start_time": 26.40076069603392,
+        "end_time": 37.77076069603392
+      },
+      {
+        "robot": "robot_3",
+        "task_id": "task_1",
+        "start_time": 50.76557268552787,
+        "end_time": 62.065572685527876
       },
       {
         "robot": "robot_2",
-        "task_id": "task_1",
-        "start_time": 61.4673868961572,
-        "end_time": 72.7673868961572
+        "task_id": "task_3",
+        "start_time": 69.08733042787107,
+        "end_time": 77.12733042787106
       }
     ],
     "loading_zone": [
@@ -120,6 +120,12 @@
       }
     ]
   },
+  "precedence": [
+    [
+      "task_1",
+      "task_3"
+    ]
+  ],
   "global_deadline": 222.0,
   "time_units": "seconds"
 }

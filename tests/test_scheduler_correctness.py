@@ -8,6 +8,45 @@ sys.path.insert(0, str(ROOT))
 
 
 class SchedulerCorrectnessTests(unittest.TestCase):
+    def precedence_config(self):
+        return {
+            "global_deadline": 100.0,
+            "robots": [
+                {
+                    "id": "R1",
+                    "capabilities": ["basic"],
+                    "max_speed": 1.0,
+                    "start_position": [0.0, 0.0],
+                },
+                {
+                    "id": "R2",
+                    "capabilities": ["basic"],
+                    "max_speed": 1.0,
+                    "start_position": [0.0, 0.0],
+                },
+            ],
+            "tasks": [
+                {
+                    "id": "T1",
+                    "location": [0.0, 0.0],
+                    "duration": 5.0,
+                    "deadline": 100.0,
+                    "requires_capability": "basic",
+                    "uses_resources": [],
+                },
+                {
+                    "id": "T2",
+                    "location": [0.0, 0.0],
+                    "duration": 5.0,
+                    "deadline": 100.0,
+                    "requires_capability": "basic",
+                    "uses_resources": [],
+                },
+            ],
+            "resources": {},
+            "precedence": [["T1", "T2"]],
+        }
+
     def test_ordering_variables_are_pruned_to_capable_task_pairs(self):
         from synasc2026.scheduler import HeterogeneousScheduler, generate_random_config
 
@@ -102,6 +141,36 @@ class SchedulerCorrectnessTests(unittest.TestCase):
         self.assertEqual(0.0, allocation["start_time"])
         self.assertEqual(12.5, allocation["end_time"])
         self.assertEqual(12.5, allocation["resource_hold_duration"])
+
+    def test_smt_schedule_honors_precedence_edges(self):
+        from synasc2026.scheduler import HeterogeneousScheduler
+
+        schedule = HeterogeneousScheduler(self.precedence_config(), time_limit=1000).solve()
+        self.assertIsNotNone(schedule)
+
+        entries = {
+            task["task_id"]: task
+            for robot_tasks in schedule["schedules"].values()
+            for task in robot_tasks
+        }
+
+        self.assertGreaterEqual(entries["T2"]["start_time"], entries["T1"]["end_time"])
+        self.assertEqual([("T1", "T2")], schedule["precedence_edges"])
+
+    def test_greedy_schedule_honors_precedence_edges(self):
+        from synasc2026.experiments.greedy_scheduler import GreedyScheduler
+
+        schedule = GreedyScheduler(self.precedence_config(), seed=1).solve()
+        self.assertIsNotNone(schedule)
+
+        entries = {
+            task["task_id"]: task
+            for robot_tasks in schedule["schedules"].values()
+            for task in robot_tasks
+        }
+
+        self.assertGreaterEqual(entries["T2"]["start_time"], entries["T1"]["end_time"])
+        self.assertEqual([("T1", "T2")], schedule["precedence_edges"])
 
 
 if __name__ == "__main__":
