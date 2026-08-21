@@ -56,10 +56,10 @@ for Greedy and VeriROS-SMT runs.
 
 | Config | Greedy Avg Makespan | VeriROS-SMT Avg Makespan | SMT Time |
 |---|---:|---:|---:|
-| 3r6t | 99.19 s | 72.14 s | 0.0633 s |
-| 6r12t | 135.94 s | 96.34 s | 1.3692 s |
-| 7r14t | 165.60 s | 103.22 s | 4.0245 s |
-| 8r16t | 177.84 s | 109.81 s | 8.7938 s |
+| 3r6t | 99.19 s | 72.14 s | 0.0276 s |
+| 6r12t | 135.94 s | 96.34 s | 0.5815 s |
+| 7r14t | 165.60 s | 103.22 s | 1.8151 s |
+| 8r16t | 177.84 s | 109.81 s | 3.3496 s |
 
 ## Artifact Evidence
 
