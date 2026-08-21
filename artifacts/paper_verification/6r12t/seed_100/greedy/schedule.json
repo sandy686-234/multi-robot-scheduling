@@ -1,0 +1,252 @@
+{
+  "metadata": {
+    "solver": "Greedy",
+    "config_label": "6r12t",
+    "seed": 100,
+    "feasible": true,
+    "status": "greedy",
+    "makespan": 153.23492180018368,
+    "solver_time_sec": 9.107589721679688e-05
+  },
+  "schedules": {
+    "robot_1": [
+      {
+        "task_id": "task_1",
+        "start_time": 25.883843975366307,
+        "end_time": 34.263843975366306,
+        "duration": 8.38,
+        "location": [
+          12.01,
+          17.5
+        ]
+      },
+      {
+        "task_id": "task_2",
+        "start_time": 67.50983329840822,
+        "end_time": 79.87983329840823,
+        "duration": 12.37,
+        "location": [
+          38.86,
+          12.78
+        ]
+      },
+      {
+        "task_id": "task_6",
+        "start_time": 96.69008236044363,
+        "end_time": 108.71008236044362,
+        "duration": 12.02,
+        "location": [
+          25.09,
+          12.15
+        ]
+      }
+    ],
+    "robot_2": [
+      {
+        "task_id": "task_3",
+        "start_time": 44.4944439845662,
+        "end_time": 52.444443984566206,
+        "duration": 7.95,
+        "location": [
+          24.72,
+          36.7
+        ]
+      }
+    ],
+    "robot_3": [
+      {
+        "task_id": "task_4",
+        "start_time": 27.335199936264516,
+        "end_time": 35.20519993626451,
+        "duration": 7.87,
+        "location": [
+          11.03,
+          27.95
+        ]
+      },
+      {
+        "task_id": "task_8",
+        "start_time": 60.191119526661375,
+        "end_time": 68.07111952666138,
+        "duration": 7.88,
+        "location": [
+          27.58,
+          36.74
+        ]
+      },
+      {
+        "task_id": "task_9",
+        "start_time": 120.55008236044362,
+        "end_time": 128.88008236044362,
+        "duration": 8.33,
+        "location": [
+          24.67,
+          39.04
+        ]
+      },
+      {
+        "task_id": "task_12",
+        "start_time": 139.95966518451942,
+        "end_time": 148.54966518451943,
+        "duration": 8.59,
+        "location": [
+          17.37,
+          35.07
+        ]
+      }
+    ],
+    "robot_4": [],
+    "robot_5": [
+      {
+        "task_id": "task_5",
+        "start_time": 54.444443984566206,
+        "end_time": 63.264443984566206,
+        "duration": 8.82,
+        "location": [
+          5.67,
+          19.18
+        ]
+      },
+      {
+        "task_id": "task_10",
+        "start_time": 121.55008236044362,
+        "end_time": 132.57008236044362,
+        "duration": 11.02,
+        "location": [
+          30.33,
+          32.33
+        ]
+      }
+    ],
+    "robot_6": [
+      {
+        "task_id": "task_7",
+        "start_time": 111.71008236044362,
+        "end_time": 118.55008236044362,
+        "duration": 6.84,
+        "location": [
+          37.14,
+          13.69
+        ]
+      },
+      {
+        "task_id": "task_11",
+        "start_time": 146.15492180018367,
+        "end_time": 153.23492180018368,
+        "duration": 7.08,
+        "location": [
+          15.52,
+          25.93
+        ]
+      }
+    ]
+  },
+  "resource_allocation": {
+    "corridor_A": [
+      {
+        "robot": "robot_1",
+        "task_id": "task_1",
+        "start_time": 25.883843975366307,
+        "end_time": 36.263843975366306,
+        "resource_hold_duration": 10.379999999999999
+      },
+      {
+        "robot": "robot_2",
+        "task_id": "task_3",
+        "start_time": 44.4944439845662,
+        "end_time": 54.444443984566206,
+        "resource_hold_duration": 9.950000000000003
+      },
+      {
+        "robot": "robot_5",
+        "task_id": "task_5",
+        "start_time": 54.444443984566206,
+        "end_time": 65.26444398456621,
+        "resource_hold_duration": 10.820000000000007
+      },
+      {
+        "robot": "robot_6",
+        "task_id": "task_7",
+        "start_time": 111.71008236044362,
+        "end_time": 120.55008236044362,
+        "resource_hold_duration": 8.840000000000003
+      },
+      {
+        "robot": "robot_3",
+        "task_id": "task_9",
+        "start_time": 120.55008236044362,
+        "end_time": 130.88008236044362,
+        "resource_hold_duration": 10.329999999999998
+      },
+      {
+        "robot": "robot_6",
+        "task_id": "task_11",
+        "start_time": 146.15492180018367,
+        "end_time": 155.23492180018368,
+        "resource_hold_duration": 9.080000000000013
+      }
+    ],
+    "loading_zone": [
+      {
+        "robot": "robot_1",
+        "task_id": "task_2",
+        "start_time": 67.50983329840822,
+        "end_time": 82.87983329840823,
+        "resource_hold_duration": 15.370000000000005
+      },
+      {
+        "robot": "robot_1",
+        "task_id": "task_6",
+        "start_time": 96.69008236044363,
+        "end_time": 111.71008236044362,
+        "resource_hold_duration": 15.019999999999996
+      },
+      {
+        "robot": "robot_6",
+        "task_id": "task_7",
+        "start_time": 111.71008236044362,
+        "end_time": 121.55008236044362,
+        "resource_hold_duration": 9.840000000000003
+      },
+      {
+        "robot": "robot_5",
+        "task_id": "task_10",
+        "start_time": 121.55008236044362,
+        "end_time": 135.57008236044362,
+        "resource_hold_duration": 14.019999999999996
+      },
+      {
+        "robot": "robot_3",
+        "task_id": "task_12",
+        "start_time": 139.95966518451942,
+        "end_time": 151.54966518451943,
+        "resource_hold_duration": 11.590000000000003
+      }
+    ],
+    "charging_station": [
+      {
+        "robot": "robot_3",
+        "task_id": "task_4",
+        "start_time": 27.335199936264516,
+        "end_time": 37.70519993626451,
+        "resource_hold_duration": 10.369999999999997
+      },
+      {
+        "robot": "robot_3",
+        "task_id": "task_8",
+        "start_time": 60.191119526661375,
+        "end_time": 70.57111952666138,
+        "resource_hold_duration": 10.380000000000003
+      },
+      {
+        "robot": "robot_3",
+        "task_id": "task_12",
+        "start_time": 139.95966518451942,
+        "end_time": 151.04966518451943,
+        "resource_hold_duration": 11.090000000000003
+      }
+    ]
+  },
+  "global_deadline": 354.0,
+  "time_units": "seconds"
+}

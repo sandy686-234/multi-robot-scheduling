@@ -1,0 +1,7 @@
+solver: VeriROS-SMT
+config: 7r14t
+seed: 100
+status: sat
+feasible: True
+makespan_sec: 109.018
+solver_time_sec: 1.601
