@@ -39,6 +39,19 @@ def _resource_map(config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     return dict(config.get("resources", {}))
 
 
+def _precedence_edges(config: Dict[str, Any]) -> List[Tuple[str, str]]:
+    raw_edges = config.get("precedence", config.get("precedence_constraints", []))
+    edges = []
+    for edge in raw_edges:
+        if isinstance(edge, dict):
+            before = edge.get("before") or edge.get("from") or edge.get("source")
+            after = edge.get("after") or edge.get("to") or edge.get("target")
+        else:
+            before, after = edge
+        edges.append((str(before), str(after)))
+    return edges
+
+
 def _fmt_context(context: str, message: str) -> str:
     return f"{context}: {message}" if context else message
 
@@ -151,6 +164,26 @@ def validate_schedule(
         task_id: entry
         for task_id, (_, entry) in task_to_assignment.items()
     }
+
+    for before, after in _precedence_edges(config):
+        if before not in tasks or after not in tasks:
+            violations.append(
+                _fmt_context(context, f"precedence_unknown_task before={before} after={after}")
+            )
+            continue
+        if before not in task_entries or after not in task_entries:
+            continue
+        before_end = float(task_entries[before]["end_time"])
+        after_start = float(task_entries[after]["start_time"])
+        if not TimeComparison.leq(before_end, after_start, eps=1e-6):
+            violations.append(
+                _fmt_context(
+                    context,
+                    f"precedence before={before} after={after} "
+                    f"before_end={before_end:.6f} after_start={after_start:.6f}",
+                )
+            )
+
     seen_resource_pairs = set()
     for resource_name, allocations in schedule.get("resource_allocation", {}).items():
         if resource_name not in resources:

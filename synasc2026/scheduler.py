@@ -67,6 +67,20 @@ def build_resources(cfg: Dict[str, Any]) -> Dict[str, Any]:
     return resources
 
 
+def build_precedence_edges(cfg: Dict[str, Any]) -> List[Tuple[str, str]]:
+    """Build task precedence edges as (predecessor, successor) pairs."""
+    raw_edges = cfg.get("precedence", cfg.get("precedence_constraints", []))
+    edges = []
+    for edge in raw_edges:
+        if isinstance(edge, dict):
+            before = edge.get("before") or edge.get("from") or edge.get("source")
+            after = edge.get("after") or edge.get("to") or edge.get("target")
+        else:
+            before, after = edge
+        edges.append((str(before), str(after)))
+    return edges
+
+
 class HeterogeneousScheduler:
 
     def __init__(self, cfg: Dict[str, Any], time_limit: int = 300000):  # 300s
@@ -79,6 +93,7 @@ class HeterogeneousScheduler:
         self.tasks = build_task_pool(cfg)
         self.robots = build_robots(cfg)
         self.resources = build_resources(cfg)
+        self.precedence_edges = build_precedence_edges(cfg)
         self.global_deadline = float(cfg.get("global_deadline", 1e9))
 
         self.solver = None
@@ -163,6 +178,8 @@ class HeterogeneousScheduler:
             category = "resource_contention"
         elif "assignment" in groups:
             category = "assignment_infeasibility"
+        elif "precedence" in groups:
+            category = "precedence_conflict"
         elif "travel" in groups or "temporal" in groups or "ordering" in groups:
             category = "temporal_infeasibility"
         else:
@@ -252,6 +269,21 @@ class HeterogeneousScheduler:
                 Sum([If(v, 1, 0) for v in candidates]) == 1,
                 f"assignment_exactly_one_{task_id}",
                 "assignment",
+            )
+
+        for before, after in self.precedence_edges:
+            if before not in self.tasks or after not in self.tasks:
+                self._set_diagnosis(
+                    "precedence_unknown_task",
+                    "precheck_failed",
+                    ["precedence"],
+                    [f"precedence_{before}_{after}"],
+                )
+                return False
+            self._add_constraint(
+                self.vars["start"][after] >= self.vars["end"][before],
+                f"precedence_{before}_{after}",
+                "precedence",
             )
 
         for robot_id in robot_ids:
@@ -458,6 +490,7 @@ class HeterogeneousScheduler:
             "travel_time_constraints": self.travel_time_constraints,
             "resource_overhead_values": self.resource_overhead_values,
             "ordering_stats": self.ordering_stats,
+            "precedence_edges": self.precedence_edges,
         }
 
 

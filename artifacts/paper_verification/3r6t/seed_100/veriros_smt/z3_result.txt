@@ -4,4 +4,4 @@ seed: 100
 status: sat
 feasible: True
 makespan_sec: 83.591
-solver_time_sec: 0.038
+solver_time_sec: 0.036

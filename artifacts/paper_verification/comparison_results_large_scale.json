@@ -28,7 +28,8 @@
       "corridor_A",
       "loading_zone",
       "charging_station"
-    ]
+    ],
+    "precedence_pattern": "task_{4k+1} precedes task_{4k+3}"
   },
   "configs": [
     {
@@ -43,7 +44,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 83.59103917561657,
-            "solver_time_sec": 6.198883056640625e-05,
+            "solver_time_sec": 6.818771362304688e-05,
             "failure_reason": null
           },
           {
@@ -52,7 +53,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 93.93462342137934,
-            "solver_time_sec": 5.316734313964844e-05,
+            "solver_time_sec": 6.914138793945312e-05,
             "failure_reason": null
           },
           {
@@ -61,7 +62,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 98.33447054759742,
-            "solver_time_sec": 4.57763671875e-05,
+            "solver_time_sec": 4.696846008300781e-05,
             "failure_reason": null
           },
           {
@@ -70,7 +71,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 139.9981638667985,
-            "solver_time_sec": 4.410743713378906e-05,
+            "solver_time_sec": 4.7206878662109375e-05,
             "failure_reason": null
           },
           {
@@ -79,7 +80,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 56.29969129501478,
-            "solver_time_sec": 4.38690185546875e-05,
+            "solver_time_sec": 4.482269287109375e-05,
             "failure_reason": null
           },
           {
@@ -88,7 +89,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 86.51800456616527,
-            "solver_time_sec": 4.291534423828125e-05,
+            "solver_time_sec": 5.1975250244140625e-05,
             "failure_reason": null
           },
           {
@@ -97,7 +98,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 115.6077425198956,
-            "solver_time_sec": 4.315376281738281e-05,
+            "solver_time_sec": 4.410743713378906e-05,
             "failure_reason": null
           },
           {
@@ -106,7 +107,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 79.18509969098027,
-            "solver_time_sec": 4.1961669921875e-05,
+            "solver_time_sec": 4.482269287109375e-05,
             "failure_reason": null
           },
           {
@@ -115,7 +116,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 92.56251229493262,
-            "solver_time_sec": 4.1961669921875e-05,
+            "solver_time_sec": 4.410743713378906e-05,
             "failure_reason": null
           },
           {
@@ -124,7 +125,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 145.90064348578534,
-            "solver_time_sec": 4.1961669921875e-05,
+            "solver_time_sec": 4.315376281738281e-05,
             "failure_reason": null
           }
         ],
@@ -135,7 +136,7 @@
             "feasible": true,
             "status": "sat",
             "makespan": 83.59103917561657,
-            "solver_time_sec": 0.03761792182922363,
+            "solver_time_sec": 0.035604000091552734,
             "failure_reason": null
           },
           {
@@ -144,7 +145,7 @@
             "feasible": true,
             "status": "sat",
             "makespan": 53.88506031628117,
-            "solver_time_sec": 0.025141000747680664,
+            "solver_time_sec": 0.035980939865112305,
             "failure_reason": null
           },
           {
@@ -153,7 +154,7 @@
             "feasible": true,
             "status": "sat",
             "makespan": 78.93145618261512,
-            "solver_time_sec": 0.019896984100341797,
+            "solver_time_sec": 0.05485415458679199,
             "failure_reason": null
           }
         ]
@@ -168,9 +169,9 @@
           "min_makespan": 56.29969129501478,
           "max_makespan": 145.90064348578534,
           "std_makespan": 27.553359930848636,
-          "avg_time_sec": 4.6086311340332034e-05,
-          "min_time_sec": 4.1961669921875e-05,
-          "max_time_sec": 6.198883056640625e-05
+          "avg_time_sec": 5.0449371337890624e-05,
+          "min_time_sec": 4.315376281738281e-05,
+          "max_time_sec": 6.914138793945312e-05
         },
         "VeriROS-SMT": {
           "runs": 3,
@@ -181,9 +182,9 @@
           "min_makespan": 53.88506031628117,
           "max_makespan": 83.59103917561657,
           "std_makespan": 15.976434935831067,
-          "avg_time_sec": 0.027551968892415363,
-          "min_time_sec": 0.019896984100341797,
-          "max_time_sec": 0.03761792182922363
+          "avg_time_sec": 0.04214636484781901,
+          "min_time_sec": 0.035604000091552734,
+          "max_time_sec": 0.05485415458679199
         }
       }
     },
@@ -199,7 +200,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 153.23492180018368,
-            "solver_time_sec": 9.107589721679688e-05,
+            "solver_time_sec": 0.00012683868408203125,
             "failure_reason": null
           },
           {
@@ -208,7 +209,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 127.86969050748357,
-            "solver_time_sec": 8.296966552734375e-05,
+            "solver_time_sec": 0.000125885009765625,
             "failure_reason": null
           },
           {
@@ -217,7 +218,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 127.80943543278681,
-            "solver_time_sec": 8.034706115722656e-05,
+            "solver_time_sec": 0.0001270771026611328,
             "failure_reason": null
           },
           {
@@ -226,7 +227,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 130.48921571909284,
-            "solver_time_sec": 7.796287536621094e-05,
+            "solver_time_sec": 0.00011014938354492188,
             "failure_reason": null
           },
           {
@@ -235,7 +236,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 115.01535843812704,
-            "solver_time_sec": 7.605552673339844e-05,
+            "solver_time_sec": 0.0001049041748046875,
             "failure_reason": null
           },
           {
@@ -244,7 +245,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 136.5968336142702,
-            "solver_time_sec": 7.557868957519531e-05,
+            "solver_time_sec": 0.00010418891906738281,
             "failure_reason": null
           },
           {
@@ -253,7 +254,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 176.1533073353279,
-            "solver_time_sec": 7.510185241699219e-05,
+            "solver_time_sec": 0.00010395050048828125,
             "failure_reason": null
           },
           {
@@ -262,7 +263,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 134.16272447491534,
-            "solver_time_sec": 7.605552673339844e-05,
+            "solver_time_sec": 0.00010514259338378906,
             "failure_reason": null
           },
           {
@@ -271,7 +272,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 155.9568511063949,
-            "solver_time_sec": 7.390975952148438e-05,
+            "solver_time_sec": 0.000102996826171875,
             "failure_reason": null
           },
           {
@@ -280,7 +281,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 102.07044057494478,
-            "solver_time_sec": 7.486343383789062e-05,
+            "solver_time_sec": 0.0001049041748046875,
             "failure_reason": null
           }
         ],
@@ -290,8 +291,8 @@
             "seed": 100,
             "feasible": true,
             "status": "sat",
-            "makespan": 86.99641738482121,
-            "solver_time_sec": 0.7167670726776123,
+            "makespan": 89.3979119819675,
+            "solver_time_sec": 1.1718599796295166,
             "failure_reason": null
           },
           {
@@ -300,7 +301,7 @@
             "feasible": true,
             "status": "sat",
             "makespan": 108.31625533279889,
-            "solver_time_sec": 0.5506019592285156,
+            "solver_time_sec": 0.9238870143890381,
             "failure_reason": null
           },
           {
@@ -308,8 +309,8 @@
             "seed": 102,
             "feasible": true,
             "status": "sat",
-            "makespan": 93.71807441778058,
-            "solver_time_sec": 0.47715306282043457,
+            "makespan": 99.1962466266668,
+            "solver_time_sec": 1.1381700038909912,
             "failure_reason": null
           }
         ]
@@ -324,22 +325,22 @@
           "min_makespan": 102.07044057494478,
           "max_makespan": 176.1533073353279,
           "std_makespan": 21.25617141446808,
-          "avg_time_sec": 7.839202880859375e-05,
-          "min_time_sec": 7.390975952148438e-05,
-          "max_time_sec": 9.107589721679688e-05
+          "avg_time_sec": 0.00011160373687744141,
+          "min_time_sec": 0.000102996826171875,
+          "max_time_sec": 0.0001270771026611328
         },
         "VeriROS-SMT": {
           "runs": 3,
           "feasible_runs": 3,
           "feasible_rate": 1.0,
           "timeout_runs": 0,
-          "avg_makespan": 96.34358237846689,
-          "min_makespan": 86.99641738482121,
+          "avg_makespan": 98.97013798047773,
+          "min_makespan": 89.3979119819675,
           "max_makespan": 108.31625533279889,
-          "std_makespan": 10.899717499583538,
-          "avg_time_sec": 0.5815073649088541,
-          "min_time_sec": 0.47715306282043457,
-          "max_time_sec": 0.7167670726776123
+          "std_makespan": 9.461198265806381,
+          "avg_time_sec": 1.0779723326365154,
+          "min_time_sec": 0.9238870143890381,
+          "max_time_sec": 1.1718599796295166
         }
       }
     },
@@ -355,7 +356,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 187.30180504662263,
-            "solver_time_sec": 0.00011610984802246094,
+            "solver_time_sec": 0.00015115737915039062,
             "failure_reason": null
           },
           {
@@ -364,7 +365,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 167.02535309240162,
-            "solver_time_sec": 0.0001010894775390625,
+            "solver_time_sec": 0.00015997886657714844,
             "failure_reason": null
           },
           {
@@ -373,7 +374,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 176.091354266317,
-            "solver_time_sec": 9.393692016601562e-05,
+            "solver_time_sec": 0.00014901161193847656,
             "failure_reason": null
           },
           {
@@ -382,7 +383,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 175.5569184211981,
-            "solver_time_sec": 9.202957153320312e-05,
+            "solver_time_sec": 0.00014281272888183594,
             "failure_reason": null
           },
           {
@@ -391,7 +392,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 145.25102496311976,
-            "solver_time_sec": 9.107589721679688e-05,
+            "solver_time_sec": 0.00014209747314453125,
             "failure_reason": null
           },
           {
@@ -400,7 +401,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 129.63992915913417,
-            "solver_time_sec": 9.226799011230469e-05,
+            "solver_time_sec": 0.0001270771026611328,
             "failure_reason": null
           },
           {
@@ -409,7 +410,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 162.83157123330204,
-            "solver_time_sec": 9.107589721679688e-05,
+            "solver_time_sec": 0.0001232624053955078,
             "failure_reason": null
           },
           {
@@ -418,7 +419,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 146.3128757833475,
-            "solver_time_sec": 9.107589721679688e-05,
+            "solver_time_sec": 0.00012302398681640625,
             "failure_reason": null
           },
           {
@@ -427,7 +428,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 187.9431946696218,
-            "solver_time_sec": 9.131431579589844e-05,
+            "solver_time_sec": 0.0001289844512939453,
             "failure_reason": null
           },
           {
@@ -436,7 +437,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 178.07682121720768,
-            "solver_time_sec": 9.131431579589844e-05,
+            "solver_time_sec": 0.00012302398681640625,
             "failure_reason": null
           }
         ],
@@ -446,8 +447,8 @@
             "seed": 100,
             "feasible": true,
             "status": "sat",
-            "makespan": 109.01811239695192,
-            "solver_time_sec": 1.6006910800933838,
+            "makespan": 111.14919905263153,
+            "solver_time_sec": 2.343092918395996,
             "failure_reason": null
           },
           {
@@ -455,8 +456,8 @@
             "seed": 101,
             "feasible": true,
             "status": "sat",
-            "makespan": 95.1077929105839,
-            "solver_time_sec": 1.9052128791809082,
+            "makespan": 100.27964262570475,
+            "solver_time_sec": 2.9522056579589844,
             "failure_reason": null
           },
           {
@@ -465,7 +466,7 @@
             "feasible": true,
             "status": "sat",
             "makespan": 105.523015761476,
-            "solver_time_sec": 1.9393630027770996,
+            "solver_time_sec": 3.090955972671509,
             "failure_reason": null
           }
         ]
@@ -480,22 +481,22 @@
           "min_makespan": 129.63992915913417,
           "max_makespan": 187.9431946696218,
           "std_makespan": 19.504879365019598,
-          "avg_time_sec": 9.512901306152344e-05,
-          "min_time_sec": 9.107589721679688e-05,
-          "max_time_sec": 0.00011610984802246094
+          "avg_time_sec": 0.00013704299926757811,
+          "min_time_sec": 0.00012302398681640625,
+          "max_time_sec": 0.00015997886657714844
         },
         "VeriROS-SMT": {
           "runs": 3,
           "feasible_runs": 3,
           "feasible_rate": 1.0,
           "timeout_runs": 0,
-          "avg_makespan": 103.21630702300394,
-          "min_makespan": 95.1077929105839,
-          "max_makespan": 109.01811239695192,
-          "std_makespan": 7.236361375464538,
-          "avg_time_sec": 1.8150889873504639,
-          "min_time_sec": 1.6006910800933838,
-          "max_time_sec": 1.9393630027770996
+          "avg_makespan": 105.6506191466041,
+          "min_makespan": 100.27964262570475,
+          "max_makespan": 111.14919905263153,
+          "std_makespan": 5.43590159931712,
+          "avg_time_sec": 2.7954181830088296,
+          "min_time_sec": 2.343092918395996,
+          "max_time_sec": 3.090955972671509
         }
       }
     },
@@ -511,7 +512,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 156.15025303021508,
-            "solver_time_sec": 0.0001270771026611328,
+            "solver_time_sec": 0.00019407272338867188,
             "failure_reason": null
           },
           {
@@ -520,7 +521,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 184.1188800331976,
-            "solver_time_sec": 0.00011801719665527344,
+            "solver_time_sec": 0.0001609325408935547,
             "failure_reason": null
           },
           {
@@ -529,7 +530,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 147.77710313715355,
-            "solver_time_sec": 0.00011229515075683594,
+            "solver_time_sec": 0.0001552104949951172,
             "failure_reason": null
           },
           {
@@ -538,7 +539,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 160.38245434601666,
-            "solver_time_sec": 0.00010919570922851562,
+            "solver_time_sec": 0.00016999244689941406,
             "failure_reason": null
           },
           {
@@ -547,7 +548,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 165.07942802580976,
-            "solver_time_sec": 0.0001068115234375,
+            "solver_time_sec": 0.00014901161193847656,
             "failure_reason": null
           },
           {
@@ -556,7 +557,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 192.75735099853546,
-            "solver_time_sec": 0.00010800361633300781,
+            "solver_time_sec": 0.0001499652862548828,
             "failure_reason": null
           },
           {
@@ -565,7 +566,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 184.57429443026177,
-            "solver_time_sec": 0.00010824203491210938,
+            "solver_time_sec": 0.0001690387725830078,
             "failure_reason": null
           },
           {
@@ -574,7 +575,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 229.45839401010994,
-            "solver_time_sec": 0.00010800361633300781,
+            "solver_time_sec": 0.0002002716064453125,
             "failure_reason": null
           },
           {
@@ -583,7 +584,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 216.05267619930402,
-            "solver_time_sec": 0.00010800361633300781,
+            "solver_time_sec": 0.0001800060272216797,
             "failure_reason": null
           },
           {
@@ -592,7 +593,7 @@
             "feasible": true,
             "status": "greedy",
             "makespan": 142.01485160571346,
-            "solver_time_sec": 0.0001068115234375,
+            "solver_time_sec": 0.0001728534698486328,
             "failure_reason": null
           }
         ],
@@ -603,7 +604,7 @@
             "feasible": true,
             "status": "sat",
             "makespan": 104.16990206411703,
-            "solver_time_sec": 3.182319164276123,
+            "solver_time_sec": 5.510702848434448,
             "failure_reason": null
           },
           {
@@ -611,8 +612,8 @@
             "seed": 101,
             "feasible": true,
             "status": "sat",
-            "makespan": 114.53019768260644,
-            "solver_time_sec": 3.2754671573638916,
+            "makespan": 115.04438105069482,
+            "solver_time_sec": 4.750974893569946,
             "failure_reason": null
           },
           {
@@ -621,7 +622,7 @@
             "feasible": true,
             "status": "sat",
             "makespan": 110.74031283345468,
-            "solver_time_sec": 3.5911009311676025,
+            "solver_time_sec": 4.36197304725647,
             "failure_reason": null
           }
         ]
@@ -636,22 +637,22 @@
           "min_makespan": 142.01485160571346,
           "max_makespan": 229.45839401010994,
           "std_makespan": 28.977446723940382,
-          "avg_time_sec": 0.00011124610900878907,
-          "min_time_sec": 0.0001068115234375,
-          "max_time_sec": 0.0001270771026611328
+          "avg_time_sec": 0.000170135498046875,
+          "min_time_sec": 0.00014901161193847656,
+          "max_time_sec": 0.0002002716064453125
         },
         "VeriROS-SMT": {
           "runs": 3,
           "feasible_runs": 3,
           "feasible_rate": 1.0,
           "timeout_runs": 0,
-          "avg_makespan": 109.81347086005938,
+          "avg_makespan": 109.98486531608884,
           "min_makespan": 104.16990206411703,
-          "max_makespan": 114.53019768260644,
-          "std_makespan": 5.241966077566529,
-          "avg_time_sec": 3.3496290842692056,
-          "min_time_sec": 3.182319164276123,
-          "max_time_sec": 3.5911009311676025
+          "max_makespan": 115.04438105069482,
+          "std_makespan": 5.476458620404356,
+          "avg_time_sec": 4.874550263086955,
+          "min_time_sec": 4.36197304725647,
+          "max_time_sec": 5.510702848434448
         }
       }
     }

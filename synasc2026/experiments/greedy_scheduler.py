@@ -88,6 +88,20 @@ def build_resources(cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     return resources
 
 
+def build_precedence_edges(cfg: Dict[str, Any]) -> List[Tuple[str, str]]:
+    """Build task precedence edges as (predecessor, successor) pairs."""
+    raw_edges = cfg.get("precedence", cfg.get("precedence_constraints", []))
+    edges = []
+    for edge in raw_edges:
+        if isinstance(edge, dict):
+            before = edge.get("before") or edge.get("from") or edge.get("source")
+            after = edge.get("after") or edge.get("to") or edge.get("target")
+        else:
+            before, after = edge
+        edges.append((str(before), str(after)))
+    return edges
+
+
 class GreedyScheduler:
 
 
@@ -96,6 +110,7 @@ class GreedyScheduler:
         self.task_pool = build_task_pool(cfg)
         self.robots = build_robots(cfg)
         self.resources = build_resources(cfg)
+        self.precedence_edges = build_precedence_edges(cfg)
         self.global_deadline = float(cfg.get("global_deadline", 1e9))  # seconds
         self.failure_reason: Optional[str] = None
         if seed is not None:
@@ -119,6 +134,13 @@ class GreedyScheduler:
             self.failure_reason = "empty_instance"
             return None
 
+        predecessors: Dict[str, List[str]] = {tid: [] for tid in task_ids}
+        for before, after in self.precedence_edges:
+            if before not in self.task_pool or after not in self.task_pool:
+                self.failure_reason = f"precedence_unknown_task: {before}->{after}"
+                return None
+            predecessors[after].append(before)
+
   
         robot_state: Dict[str, Dict[str, Any]] = {}
         for rid in robot_ids:
@@ -133,11 +155,26 @@ class GreedyScheduler:
         }  # seconds
 
    
-        task_ids.sort(key=lambda tid: self.task_pool[tid]["deadline"])
+        sorted_task_ids = sorted(task_ids, key=lambda tid: self.task_pool[tid]["deadline"])
+        unscheduled = set(sorted_task_ids)
+        scheduled_end: Dict[str, float] = {}
 
       
-        for tid in task_ids:
+        while unscheduled:
+            eligible = [
+                tid for tid in sorted_task_ids
+                if tid in unscheduled and all(pred in scheduled_end for pred in predecessors[tid])
+            ]
+            if not eligible:
+                self.failure_reason = "precedence_cycle_or_missing_predecessor"
+                return None
+
+            tid = eligible[0]
             task = self.task_pool[tid]
+            earliest_from_precedence = max(
+                [scheduled_end[pred] for pred in predecessors[tid]],
+                default=0.0,
+            )
 
             candidates = []
             for rid in robot_ids:
@@ -154,6 +191,7 @@ class GreedyScheduler:
                 )  # returns seconds
 
                 est = rstate["time"] + travel_time  # seconds
+                est = max(est, earliest_from_precedence)
                 eet = est + task["duration"]  # seconds
 
             
@@ -201,6 +239,8 @@ class GreedyScheduler:
             })
             robot_state[best_rid]["time"] = best_end  # seconds
             robot_state[best_rid]["pos"] = tuple(task["location"])  # meters
+            scheduled_end[tid] = best_end
+            unscheduled.remove(tid)
 
             for res in task.get("uses_resources", []):
                 if res in self.resources:
@@ -263,6 +303,7 @@ class GreedyScheduler:
             "time_units": "seconds",
             "spatial_units": "meters",
             "speed_units": "m/s",
+            "precedence_edges": self.precedence_edges,
         }
 
 

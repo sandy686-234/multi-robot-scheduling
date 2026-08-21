@@ -3,5 +3,5 @@ config: 6r12t
 seed: 100
 status: sat
 feasible: True
-makespan_sec: 86.996
-solver_time_sec: 0.717
+makespan_sec: 89.398
+solver_time_sec: 1.172
