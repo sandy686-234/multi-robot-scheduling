@@ -224,13 +224,14 @@ class GreedyScheduler:
                         resource_oh = ResourceOverheadCalculator.compute(
                             self.resources[res]["traversal_time"]
                         )
+                        resource_release_time = task_entry["end_time"] + resource_oh
                         resource_allocation[res].append({
                             "robot": rid,
                             "task_id": tid,
                             "start_time": task_entry["start_time"],  # seconds
-                            "end_time": task_entry["end_time"],       # seconds
+                            "end_time": resource_release_time,        # seconds
                             "resource_hold_duration": (
-                                task_entry["end_time"] - task_entry["start_time"] + resource_oh
+                                resource_release_time - task_entry["start_time"]
                             ),  # seconds
                         })
             resource_allocation[res].sort(key=lambda x: x["start_time"])

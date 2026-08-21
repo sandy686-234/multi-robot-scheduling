@@ -84,6 +84,10 @@ class HeterogeneousScheduler:
         self.solver = None
         self.vars = {}
         self.failure_reason = None
+        self.diagnosis = None
+        self.unsat_core_labels = []
+        self.constraint_labels = {}
+        self.ordering_stats = {}
 
         self.travel_time_constraints = {}  # {(robot, task_i, task_j): time}
         self.resource_overhead_values = {}  # {resource: overhead}
@@ -115,6 +119,57 @@ class HeterogeneousScheduler:
             robot["max_speed"]
         )
 
+    def _add_constraint(self, constraint: Any, label: Optional[str] = None,
+                        group: Optional[str] = None) -> None:
+        if label and group and hasattr(self.solver, "assert_and_track"):
+            track_name = label
+            suffix = 1
+            while track_name in self.constraint_labels:
+                suffix += 1
+                track_name = f"{label}_{suffix}"
+            self.constraint_labels[track_name] = group
+            self.solver.assert_and_track(constraint, Bool(track_name))
+        else:
+            self.solver.add(constraint)
+
+    def _set_diagnosis(self, category: str, status: str,
+                       groups: Optional[List[str]] = None,
+                       core: Optional[List[str]] = None) -> None:
+        self.unsat_core_labels = core or []
+        self.diagnosis = {
+            "status": status,
+            "category": category,
+            "groups": sorted(set(groups or [])),
+            "core": self.unsat_core_labels,
+        }
+        core_preview = ",".join(self.unsat_core_labels[:5])
+        self.failure_reason = f"{category}: {core_preview}" if core_preview else category
+
+    def _record_solver_failure(self, result: Any) -> None:
+        core_labels = []
+        if result == unsat and hasattr(self.solver, "unsat_core"):
+            core_labels = [str(label) for label in self.solver.unsat_core()]
+
+        groups = [
+            self.constraint_labels.get(label, "unknown")
+            for label in core_labels
+        ]
+
+        if "deadline" in groups:
+            category = "deadline_conflict"
+        elif "capability" in groups:
+            category = "capability_mismatch"
+        elif "resource" in groups:
+            category = "resource_contention"
+        elif "assignment" in groups:
+            category = "assignment_infeasibility"
+        elif "travel" in groups or "temporal" in groups or "ordering" in groups:
+            category = "temporal_infeasibility"
+        else:
+            category = f"Z3_returned: {result}"
+
+        self._set_diagnosis(category, str(result), groups, core_labels)
+
     def build_smt_model(self) -> bool:
      
         if not HAS_Z3:
@@ -133,9 +188,17 @@ class HeterogeneousScheduler:
             "res_end": {},
             "makespan": Real("makespan"),
         }
+        self.failure_reason = None
+        self.diagnosis = None
+        self.unsat_core_labels = []
+        self.constraint_labels = {}
+        self.ordering_stats = {}
+        self.travel_time_constraints = {}
+        self.resource_overhead_values = {}
 
         robot_ids = list(self.robots.keys())
         task_ids = list(self.tasks.keys())
+        full_ordering_vars = len(robot_ids) * len(task_ids) * max(0, len(task_ids) - 1)
 
        
         for task_id in task_ids:
@@ -145,10 +208,10 @@ class HeterogeneousScheduler:
             self.vars["start"][task_id] = st
             self.vars["end"][task_id] = et
 
-            self.solver.add(st >= 0)
-            self.solver.add(et == st + task["duration"])
-            self.solver.add(et <= task["deadline"])
-            self.solver.add(et <= self.global_deadline)
+            self._add_constraint(st >= 0, f"start_nonnegative_{task_id}", "temporal")
+            self._add_constraint(et == st + task["duration"], f"duration_{task_id}", "temporal")
+            self._add_constraint(et <= task["deadline"], f"deadline_{task_id}", "deadline")
+            self._add_constraint(et <= self.global_deadline, f"global_deadline_{task_id}", "deadline")
 
        
         for task_id in task_ids:
@@ -161,20 +224,35 @@ class HeterogeneousScheduler:
                 self.vars["assign"][(robot_id, task_id)] = a
 
                 if not self.capable(robot, task):
-                    self.solver.add(a == False)
+                    self._add_constraint(
+                        a == False,
+                        f"capability_{robot_id}_{task_id}",
+                        "capability",
+                    )
                 else:
                     candidates.append(a)
 
                     first_travel = self.travel_time_from_start(robot, task)
-                    self.solver.add(
-                        Implies(a, self.vars["start"][task_id] >= first_travel)
+                    self._add_constraint(
+                        Implies(a, self.vars["start"][task_id] >= first_travel),
+                        f"start_travel_{robot_id}_{task_id}",
+                        "travel",
                     )
 
             if not candidates:
-                self.failure_reason = f"capability_mismatch: {task_id}"
+                self._set_diagnosis(
+                    "capability_mismatch",
+                    "precheck_failed",
+                    ["capability"],
+                    [f"capability_{task_id}"],
+                )
                 return False
 
-            self.solver.add(Sum([If(v, 1, 0) for v in candidates]) == 1)
+            self._add_constraint(
+                Sum([If(v, 1, 0) for v in candidates]) == 1,
+                f"assignment_exactly_one_{task_id}",
+                "assignment",
+            )
 
         for robot_id in robot_ids:
             robot = self.robots[robot_id]
@@ -183,6 +261,11 @@ class HeterogeneousScheduler:
             for i, ti in enumerate(task_ids_list):
                 for j, tj in enumerate(task_ids_list):
                     if ti == tj:
+                        continue
+                    if not (
+                        self.capable(robot, self.tasks[ti])
+                        and self.capable(robot, self.tasks[tj])
+                    ):
                         continue
 
                     ai = self.vars["assign"][(robot_id, ti)]
@@ -205,7 +288,7 @@ class HeterogeneousScheduler:
                     self.travel_time_constraints[(robot_id, ti, tj)] = tt_ij
                     self.travel_time_constraints[(robot_id, tj, ti)] = tt_ji
 
-                    self.solver.add(
+                    self._add_constraint(
                         Implies(
                             And(ai, aj),
                             Or(
@@ -216,8 +299,19 @@ class HeterogeneousScheduler:
                                     self.vars["start"][ti] >=
                                     self.vars["end"][tj] + tt_ji),
                             )
-                        )
+                        ),
+                        f"ordering_{robot_id}_{ti}_{tj}",
+                        "ordering",
                     )
+        pruned_ordering_vars = len(self.vars["order"])
+        reduction = 0.0
+        if full_ordering_vars:
+            reduction = (full_ordering_vars - pruned_ordering_vars) / full_ordering_vars * 100.0
+        self.ordering_stats = {
+            "full": full_ordering_vars,
+            "pruned": pruned_ordering_vars,
+            "reduction_pct": reduction,
+        }
 
         for res_name in self.resources.keys():
             resource = self.resources[res_name]
@@ -239,9 +333,15 @@ class HeterogeneousScheduler:
                 self.vars["res_start"][(res_name, task_id)] = res_st
                 self.vars["res_end"][(res_name, task_id)] = res_et
 
-                self.solver.add(res_st == self.vars["start"][task_id])
-                self.solver.add(
-                    res_et == self.vars["end"][task_id] + resource_oh
+                self._add_constraint(
+                    res_st == self.vars["start"][task_id],
+                    f"resource_start_{res_name}_{task_id}",
+                    "resource",
+                )
+                self._add_constraint(
+                    res_et == self.vars["end"][task_id] + resource_oh,
+                    f"resource_end_{res_name}_{task_id}",
+                    "resource",
                 )
 
             for i in range(len(tasks_using_res)):
@@ -251,21 +351,29 @@ class HeterogeneousScheduler:
 
                     b = Bool(f"res_before_{res_name}_{ti}_{tj}")
 
-                    self.solver.add(
+                    self._add_constraint(
                         Or(
                             And(b,
                                 self.vars["res_end"][(res_name, ti)] <=
                                 self.vars["res_start"][(res_name, tj)]),
-                            And(Not(b),
+                            And(
+                                Not(b),
                                 self.vars["res_end"][(res_name, tj)] <=
-                                self.vars["res_start"][(res_name, ti)]),
-                        )
+                                self.vars["res_start"][(res_name, ti)]
+                            ),
+                        ),
+                        f"resource_mutex_{res_name}_{ti}_{tj}",
+                        "resource",
                     )
 
         makespan = self.vars["makespan"]
-        self.solver.add(makespan >= 0)
+        self._add_constraint(makespan >= 0, "makespan_nonnegative", "temporal")
         for task_id in task_ids:
-            self.solver.add(makespan >= self.vars["end"][task_id])
+            self._add_constraint(
+                makespan >= self.vars["end"][task_id],
+                f"makespan_after_{task_id}",
+                "temporal",
+            )
 
         self.solver.minimize(makespan)
         return True
@@ -290,7 +398,7 @@ class HeterogeneousScheduler:
 
         result = self.solver.check()
         if result != sat:
-            self.failure_reason = f"Z3_returned: {result}"
+            self._record_solver_failure(result)
             return None
 
         m = self.solver.model()
@@ -349,6 +457,7 @@ class HeterogeneousScheduler:
             "speed_units": "m/s",
             "travel_time_constraints": self.travel_time_constraints,
             "resource_overhead_values": self.resource_overhead_values,
+            "ordering_stats": self.ordering_stats,
         }
 
 
