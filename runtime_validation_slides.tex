@@ -1,0 +1,335 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+
+\usetheme{Madrid}
+\setbeamertemplate{navigation symbols}{}
+
+\title{Mission-to-Execution Runtime Validation}
+\subtitle{Runtime Modeling for Multi-Robot Systems}
+\author{Huan Zhang}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Research Problem}
+The offline SMT model produces a valid planned execution:
+\[
+x^{plan} \models \Phi_{\mathrm{global}}
+\]
+from which the execution graph $G_E$ is constructed.
+
+However, during execution,
+\[
+x^{obs}(t) \neq x^{plan}
+\]
+because of task delays, robot failures, travel-time variations, or resource contention.
+
+\begin{center}
+\boxed{
+\begin{minipage}{0.82\textwidth}
+\centering
+Does the observed execution still satisfy the mission guarantees?
+\end{minipage}
+}
+\end{center}
+\end{frame}
+
+\begin{frame}{Why Runtime Validation?}
+The SMT solution guarantees that the planned execution satisfies the mission constraints:
+\[
+x^{plan} \models \Phi_{\mathrm{global}}.
+\]
+The physical execution may still deviate from the plan:
+\[
+e_{task\_5}^{plan}=49.96s,\qquad e_{task\_5}^{obs}=51.00s.
+\]
+Therefore,
+\[
+\Delta e_{task\_5}=e_{task\_5}^{obs}-e_{task\_5}^{plan}=1.04s.
+\]
+This deviation does not by itself imply a mission violation. The runtime validator must check whether the corresponding runtime properties remain satisfied.
+
+\[
+\boxed{\text{Deviation} \neq \text{Violation}}
+\]
+\end{frame}
+
+\begin{frame}{From Execution Graph to Execution Certificate}
+The execution graph represents the planned execution constructed from the SMT solution:
+\[
+G_E=(V,E).
+\]
+For runtime validation, we derive an execution certificate:
+\[
+G_E \longrightarrow C_E,\qquad
+C_E=\langle B_E,\Phi_R\rangle.
+\]
+\begin{itemize}
+    \item $B_E$: planned task-robot bindings and timing information;
+    \item $\Phi_R$: runtime-checkable properties derived from design-time constraints.
+\end{itemize}
+
+\[
+\boxed{C_E \text{ defines what must remain valid during execution.}}
+\]
+\end{frame}
+
+\begin{frame}{From Design-Time Constraints to Runtime Guarantees}
+The offline scheduling model is:
+\[
+\Phi_{\mathrm{global}}
+=
+\Phi_{\mathrm{assign}}
+\land
+\Phi_{\mathrm{cap}}
+\land
+\Phi_{\mathrm{time}}
+\land
+\Phi_{\mathrm{prec}}
+\land
+\Phi_{\mathrm{resource}}.
+\]
+Solving the model produces:
+\[
+\Phi_{\mathrm{global}}\rightarrow x^{plan}\rightarrow G_E.
+\]
+Runtime-checkable properties are then derived:
+\[
+\Phi_R=
+\{
+\varphi_{\mathrm{prec}},
+\varphi_{\mathrm{deadline}},
+\varphi_{\mathrm{resource}}
+\}.
+\]
+
+\[
+\boxed{\text{Design-time constraints}\rightarrow\text{runtime guarantees}}
+\]
+\end{frame}
+
+\begin{frame}{Expected Execution Semantics}
+At time $t$, the execution certificate defines the expected execution state:
+\[
+\boxed{S^{plan}(t)=Expected(C_E,t)}.
+\]
+For each task $T_i$:
+\[
+X_i^{plan}(t)
+=
+\left\langle
+status_i^{plan}(t),
+r_i^{plan},
+s_i^{plan},
+e_i^{plan}
+\right\rangle.
+\]
+The planned task status is:
+\[
+status_i^{plan}(t)=
+\begin{cases}
+Pending, & t < s_i^{plan},\\
+Running, & s_i^{plan}\leq t < e_i^{plan},\\
+Completed, & t\geq e_i^{plan}.
+\end{cases}
+\]
+\[
+\boxed{Pending\rightarrow Running\rightarrow Completed}
+\]
+\end{frame}
+
+\begin{frame}{Runtime Events}
+During execution, robots generate runtime events:
+\[
+o_k=
+\left\langle
+\tau_k,\,
+type_k,\,
+r_k,\,
+T_i,\,
+value_k
+\right\rangle.
+\]
+\begin{itemize}
+    \item $\tau_k$: timestamp of event $o_k$;
+    \item $type_k$: event type, e.g., \texttt{TaskStart}, \texttt{TaskFinish}, or \texttt{RobotFailure};
+    \item $r_k$: robot associated with the event;
+    \item $T_i$: task associated with the event, if applicable;
+    \item $value_k$: observed value carried by the event.
+\end{itemize}
+
+For example:
+\[
+o_k=\langle 51.00s,\texttt{TaskFinish},robot\_4,task\_5,51.00s\rangle.
+\]
+\end{frame}
+
+\begin{frame}{Observed Execution State}
+The runtime event trace is used to reconstruct the observed execution state:
+\[
+\boxed{S^{obs}(t)=Reconstruct(\mathcal{T}(t))}.
+\]
+For each task $T_i$:
+\[
+X_i^{obs}(t)
+=
+\left\langle
+status_i^{obs}(t),\,
+r_i^{obs},\,
+s_i^{obs},\,
+e_i^{obs}
+\right\rangle,
+\]
+where:
+\[
+status_i^{obs}(t)\in\{Pending,Running,Completed,Failed\}.
+\]
+The observed state is updated whenever a new runtime event is received:
+\[
+\boxed{o_k\rightarrow\mathcal{T}(t)\rightarrow S^{obs}(t)}.
+\]
+\end{frame}
+
+\begin{frame}{Runtime Deviation}
+For task $T_i$, the completion-time deviation is:
+\[
+\Delta e_i=e_i^{obs}-e_i^{plan}.
+\]
+For the precedence edge extracted from the experimental SMT schedule:
+\[
+task\_5 \rightarrow task\_7,
+\]
+a delay of $task\_5$ affects the runtime precedence property:
+\[
+\Delta e_{task\_5}
+\rightarrow
+\varphi^{5,7}_{\mathrm{prec}}:
+s^{obs}_{task\_7}\geq e^{obs}_{task\_5}.
+\]
+\[
+\boxed{\text{Deviation is interpreted through the affected mission property.}}
+\]
+\end{frame}
+
+\begin{frame}{Relevance to Mission Constraints}
+Only properties that depend on the changed observed state need to be checked:
+\[
+\Phi_R^{rel}(t)
+=
+\{\varphi\in\Phi_R\mid \varphi \text{ depends on } S^{obs}(t)\}.
+\]
+For a completion-time delay in $task\_5$, the relevant precedence property is:
+\[
+\varphi^{5,7}_{\mathrm{prec}}:
+s^{obs}_{task\_7}\geq e^{obs}_{task\_5}.
+\]
+This avoids treating every timing deviation as a violation.
+
+\[
+\boxed{\text{Deviation}\rightarrow\text{relevant runtime property}}
+\]
+\end{frame}
+
+\begin{frame}{Quantitative Validity Margin}
+The validity margin measures the distance from violation.
+For a precedence edge $T_i\rightarrow T_j$:
+\[
+m^{prec}_{i,j}(t)=s^{obs}_{j}-e^{obs}_{i}.
+\]
+\[
+m^{prec}_{i,j}(t)\geq 0
+\Rightarrow
+\text{Satisfied}
+\]
+\[
+m^{prec}_{i,j}(t)<0
+\Rightarrow
+\text{Violated}
+\]
+The sign gives the verdict, and the magnitude gives the severity of the violation.
+\end{frame}
+
+\begin{frame}{Runtime Precedence Validation Example}
+From the 6r12t SMT schedule, the execution certificate contains:
+\[
+task\_5 \rightarrow task\_7.
+\]
+The planned schedule gives:
+\[
+e^{plan}_{task\_5}=49.96s,\quad
+s^{plan}_{task\_7}=53.01s,\quad
+m^{plan}_{5,7}=3.05s.
+\]
+At runtime, the validator checks the observed margin:
+\[
+m^{obs}_{5,7}=s^{obs}_{task\_7}-e^{obs}_{task\_5}.
+\]
+
+\scriptsize
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Case & $e^{obs}_{task\_5}$ & $s^{obs}_{task\_7}$ & Verdict \\
+\midrule
+Planned execution & 49.96s & 53.01s & Valid, $m=3.05s$ \\
+Delayed but valid & 51.00s & 53.01s & Valid, $m=2.01s$ \\
+Runtime violation & 54.50s & 53.01s & Violated, $m=-1.49s$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Proposed Runtime Validation Model}
+\[
+G_E\rightarrow C_E\rightarrow S^{plan}(t)
+\]
+\[
+\mathcal{T}(t)\rightarrow S^{obs}(t)
+\]
+\[
+\Delta(t)=Diff(S^{plan}(t),S^{obs}(t))
+\]
+\[
+\Phi_R^{rel}(t)=Relevant(\Delta(t),\Phi_R)
+\]
+\[
+\boxed{
+(V,D,m)=Validate(S^{obs}(t),\Phi_R^{rel}(t))
+}
+\]
+For the runtime violation above, the validator returns:
+\[
+V=\text{Violated},\quad
+D=\text{precedence}(task\_5,task\_7),\quad
+m=-1.49s.
+\]
+\end{frame}
+
+\begin{frame}{Open Questions for Discussion}
+\textbf{Q1. Runtime properties}
+
+Which design-time constraints should be monitored at runtime?
+
+\vspace{0.5cm}
+\textbf{Q2. Scope}
+
+Should this paper focus on:
+\[
+Detection\rightarrow Diagnosis\rightarrow Margin
+\]
+and leave repair for future work?
+
+\[
+\boxed{\text{Deviation}\neq\text{Violation}}
+\]
+\end{frame}
+
+\end{document}
