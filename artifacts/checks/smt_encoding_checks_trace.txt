@@ -1,0 +1,16 @@
+OK   time_sat.smt2                    expected=sat   actual=sat
+OK   time_unsat.smt2                  expected=unsat actual=unsat
+OK   assignment_sat.smt2              expected=sat   actual=sat
+OK   assignment_unsat.smt2            expected=unsat actual=unsat
+OK   capability_sat.smt2              expected=sat   actual=sat
+OK   capability_unsat.smt2            expected=unsat actual=unsat
+OK   travel_ordering_sat.smt2         expected=sat   actual=sat
+OK   travel_ordering_unsat.smt2       expected=unsat actual=unsat
+OK   precedence_sat.smt2              expected=sat   actual=sat
+OK   precedence_unsat.smt2            expected=unsat actual=unsat
+OK   resource_mutex_sat.smt2          expected=sat   actual=sat
+OK   resource_mutex_unsat.smt2        expected=unsat actual=unsat
+OK   full_schedule_sat.smt2           expected=sat   actual=sat
+OK   full_schedule_unsat.smt2         expected=unsat actual=unsat
+
+SMT_ENCODING_CHECKS_OK
